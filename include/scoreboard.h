@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <x86_64-linux-gnu/bits/pthreadtypes.h>
 #include <stdbool.h>
+#include "types.h"
 
 extern int total_runs;
 extern int total_wickets;
@@ -37,10 +38,6 @@ bool target_chased();
 void add_runs(int runs);
 void add_wicket();
 void next_ball(bool is_legal_delivery);
-void set_target(int runs);
-void reset_for_second_innings();
-bool is_match_over();
-bool target_chased();
 void get_score(int *runs, int *wickets, int *overs, int *balls);
 void reset_players(player team[], int n);
 #endif

@@ -42,6 +42,6 @@ typedef struct
     int wickets_taken;
     int runs_scored;
     int balls_faced;
-    int played; // for status of batsmen
+    int played; // DNB, Playing, Out
 } player;
 #endif
