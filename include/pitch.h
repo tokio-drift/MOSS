@@ -2,6 +2,7 @@
 #define PITCH_H
 
 #include <pthread.h>
+#include<stdbool.h>
 #include "types.h"
 
 #define PITCH_SIZE 6
