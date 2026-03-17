@@ -40,6 +40,5 @@ typedef struct
     int runs_scored;
     int balls_faced;
     int played; // for status of batsmen
-
 } player;
 #endif

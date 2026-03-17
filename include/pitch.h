@@ -25,5 +25,4 @@ void pitch_write(delivery_event ball);
 
 delivery_event pitch_read();
 
-
 #endif
