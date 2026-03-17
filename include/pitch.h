@@ -2,8 +2,10 @@
 #define PITCH_H
 
 #include <pthread.h>
-#include<stdbool.h>
+#include <stdbool.h>
+#include <x86_64-linux-gnu/bits/pthreadtypes.h>
 #include "types.h"
+
 
 #define PITCH_SIZE 6
 

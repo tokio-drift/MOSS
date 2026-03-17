@@ -1,7 +1,9 @@
 #ifndef SCOREBOARD_H
 #define SCOREBOARD_H
 #include <pthread.h>
+#include <x86_64-linux-gnu/bits/pthreadtypes.h>
 #include <stdbool.h>
+
 extern int total_runs;
 extern int total_wickets;
 extern int overs_completed;
