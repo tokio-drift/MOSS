@@ -21,6 +21,9 @@ delivery_event generate_delivery(player *bowler)
     }
 
     // extras probability
+    int base_wide = 8; // base 8%
+    int base_noball = 4;
+    int skill_factor = (100 - bowler->bowling_skill) / 10;
     int fatigue = bowler->overs_bowled * 2;
     int pressure = match.match_intensity / 20;
     int wide_prob = base_wide + skill_factor + fatigue + pressure;
