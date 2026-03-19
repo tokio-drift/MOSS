@@ -24,7 +24,7 @@ delivery_event generate_delivery(player *bowler)
     int base_noball = 4;
     int skill_factor = (100 - bowler->bowling_skill) / 10;
     int fatigue = bowler->overs_bowled * 2;
-    int pressure = match.match_intensity / 20;
+    int pressure = match.match_intensity / 10;
     int wide_prob = base_wide + skill_factor + fatigue + pressure;
     int noball_prob = base_noball + skill_factor / 2 + fatigue / 2;
     if (wide_prob > 25)
@@ -39,7 +39,7 @@ delivery_event generate_delivery(player *bowler)
     else
         ball.extra = NO_EXTRA;
     return ball;
-}+
+}
 void *bowler_thread(void *arg)
 {
     player *bowler = (player *)arg;
