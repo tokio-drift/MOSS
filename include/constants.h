@@ -7,16 +7,13 @@
 #define MIN_SPEED_PACER 100
 #define MAX_SPEED_SPIN 120
 #define MIN_SPEED_SPIN 80
-enum pace_ball_type
+enum ball_type
 {
     YORKER,
     BOUNCER,
     LENGTH,
     FULL,
-    SLOWER
-};
-enum spin_ball_type
-{
+    SLOWER,
     OFF_BREAK,
     LEG_BREAK,
     CARROM,

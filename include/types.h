@@ -5,7 +5,7 @@
 
 typedef struct
 {
-    int ball_type;
+    enum ball_type ball_type;
     int speed;
     int extra; // shows type of extra
 } delivery_event;
