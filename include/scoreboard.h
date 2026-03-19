@@ -15,19 +15,19 @@ void init_scoreboard();
 void update_batsman_stats(player *batsman, int runs, bool is_legal);
 void mark_batsman_out(player *batsman);
 
-// Update boeler stats
+// Update bowler stats
 void update_bowler_runs(player *bowler, int runs);
 void update_bowler_ball(player *bowler, bool is_legal);
 void update_bowler_wicket(player *bowler);
 
-//printing stats function for both bowler and batsman
+// Logging functions
 void print_batsman(player *batsman);
 void print_bowler(player *bowler);
 void print_current_batsmen(player *b1, player *b2);
 void print_batting_card(player team[], int n);
 void print_bowling_card(player bowlers[], int n);
 
-//innnings and target 
+// innings and target 
 void set_target(int runs);
 void reset_for_second_innings();
 bool is_match_over();

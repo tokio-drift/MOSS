@@ -5,9 +5,7 @@
 #include <stdbool.h>
 #include <x86_64-linux-gnu/bits/pthreadtypes.h>
 #include "types.h"
-
-
-#define PITCH_SIZE 6
+#include "constants.h"
 
 extern delivery_event pitch_buffer[PITCH_SIZE];
 
