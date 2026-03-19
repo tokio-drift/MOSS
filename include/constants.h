@@ -1,5 +1,6 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
+#define TEAM_SIZE 11
 #define MAX_SPEED_PACER 160
 #define MIN_SPEED_PACER 100
 #define MAX_SPEED_SPIN 120

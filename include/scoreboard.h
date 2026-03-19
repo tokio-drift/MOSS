@@ -4,13 +4,10 @@
 #include <x86_64-linux-gnu/bits/pthreadtypes.h>
 #include <stdbool.h>
 #include "types.h"
+#include "match.h"
 
-extern int total_runs;
-extern int total_wickets;
-extern int overs_completed;
-extern int balls_in_over;
-extern int target;              // only used in 2nd innings
-extern bool is_second_innings;
+extern scoreboard match;
+
 extern pthread_mutex_t score_mutex;
 //start match
 void init_scoreboard();
