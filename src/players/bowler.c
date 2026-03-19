@@ -19,11 +19,20 @@ delivery_event generate_delivery(player *bowler)
         ball.ball_type = rand() % 5;
         ball.speed = MIN_SPEED_SPIN + rand() % (MAX_SPEED_SPIN - MIN_SPEED_SPIN + 1);
     }
+
     // extras probability
+    int fatigue = bowler->overs_bowled * 2;
+    int pressure = match.match_intensity / 20;
+    int wide_prob = base_wide + skill_factor + fatigue + pressure;
+    int noball_prob = base_noball + skill_factor / 2 + fatigue / 2;
+    if (wide_prob > 25)
+        wide_prob = 25;
+    if (noball_prob > 15)
+        noball_prob = 15;
     int r = rand() % 100;
-    if (r < 5)
+    if (r < wide_prob)
         ball.extra = WIDE;
-    else if (r < 8)
+    else if (r < wide_prob + noball_prob)
         ball.extra = NO_BALL;
     else
         ball.extra = NO_EXTRA;
