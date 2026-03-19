@@ -1,10 +1,11 @@
-#include "../include/pitch.h"
-#include "../include/types.h"
-#include "../include/constants.h"
-#include "../include/scheduler.h"
-#include "../include/scoreboard.h"
-#include "../include/match.h"
 #include <stdlib.h>
+#include "../../include/pitch.h"
+#include "../../include/types.h"
+#include "../../include/constants.h"
+#include "../../include/scheduler.h"
+#include "../../include/scoreboard.h"
+#include "../../include/match.h"
+
 delivery_event generate_delivery(player *bowler)
 {
     delivery_event ball;
@@ -28,6 +29,7 @@ delivery_event generate_delivery(player *bowler)
         ball.extra = NO_EXTRA;
     return ball;
 }
+
 void *bowler_thread(void *arg)
 {
     player *bowler = (player *)arg;
