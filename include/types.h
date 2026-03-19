@@ -31,12 +31,15 @@ typedef struct
 
 typedef struct
 {
+    // Defined before game
     int id;
     int bowling_skill;
     int fielding_skill;
     int batting_skill;
     bool bowler_type; // 0 for pace and 1 for spin.
     int batsmen_type; // 0 for top-order, 1 for middle-order, 2 for lower-order.
+
+    // Runtime modified
     int overs_bowled;
     int runs_conceded;
     int wickets_taken;
