@@ -38,7 +38,6 @@ int get_non_striker();
 
 
 // will be called after every legal ball
-void update_ball();
 void end_over(player team[], int n);
 
 
