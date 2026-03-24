@@ -29,10 +29,10 @@ int get_phase(scoreboard *match)
 }
 int compute_intensity(scoreboard *match)
 {
-    if (match->which_innings == 0)
+    if (match->innings == 0)
         return 0;
-    float current_rr = (float)match->runs / (match->overs + 1);
-    float required_rr = (float)(match->target - match->runs) /
+    float current_rr = (float)match->score / (match->overs + 1);
+    float required_rr = (float)(match->target - match->score) /
                         (20 - match->overs + 1);
     return (int)(required_rr - current_rr);
 }
@@ -92,7 +92,7 @@ int schedule_priority(player team[], int n, scoreboard *match)
             continue;
         int score = 0;
         // skill
-        score += team[i].skill_level * 2;
+        score += team[i].bowling_skill * 2;
         // fatigue
         score -= team[i].overs_bowled * 3;
         // phase logic
@@ -115,7 +115,7 @@ int schedule_priority(player team[], int n, scoreboard *match)
         }
         // match intensity
         if (intensity > 2)
-            score += team[i].skill_level * 2;
+            score += team[i].bowling_skill * 2;
         // small randomness
         score += rand() % 3;
         if (score > best_score)
@@ -147,22 +147,22 @@ int select_next_batsman(player team[], int n, scoreboard *match)
         // type-based
         if (intensity > 2)
         {
-            if (team[i].batsman_type == 2) // finisher
+            if (team[i].batsmen_type == 2) // finisher
                 score += 15;
         }
         else if (intensity < 0)
         {
-            if (team[i].batsman_type == 1) // anchor
+            if (team[i].batsmen_type == 1) // anchor
                 score += 10;
         }
         if (match->wickets < 2)
         {
-            if (team[i].batsman_type == 0) // opener
+            if (team[i].batsmen_type == 0) // opener
                 score += 10;
         }
         if (match->wickets >= 4)
         {
-            if (team[i].batsman_type == 3) // allrounder
+            if (team[i].batsmen_type == 3) // allrounder
                 score += 10;
         }
         score += rand() % 3;
