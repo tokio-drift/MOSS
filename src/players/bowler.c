@@ -16,23 +16,16 @@ void *bowler_thread(void *arg)
         // stop condition
         if (is_match_over())
             break;
-        pthread_mutex_lock(&pitch_mutex);
-        // wait until previous ball is consumed
-        while (ball_ready == true)
-            pthread_cond_wait(&ball_consumed_cond, &pitch_mutex);
-        // generate ball
         delivery_event ball = generate_delivery(bowler);
-        // write to pitch
-        pitch_buffer[pitch_index] = ball;
-        pitch_index = (pitch_index + 1) % PITCH_SIZE;
-        // update state
-        ball_ready = true;
-        ball_consumed = false;
-        // notify batsman
-        pthread_cond_signal(&ball_ready_cond);
-        // wait until batsman finishes shot
-        while (ball_consumed == false)
+            
+        // write using pitch abstraction
+        pitch_write(ball);
+        // wait until batsman consumes
+        pthread_mutex_lock(&pitch_mutex);
+        while (!ball_consumed){
+            if(is_match_over()) break;
             pthread_cond_wait(&ball_consumed_cond, &pitch_mutex);
+        }
         pthread_mutex_unlock(&pitch_mutex);
         // 🔹 update scoreboard (only legal ball increments)
         bool is_legal = (ball.extra != WIDE && ball.extra != NO_BALL);
