@@ -1,4 +1,7 @@
+// src/players/bowler.c
+
 #include <stdlib.h>
+#include <stdio.h>
 #include "../../include/pitch.h"
 #include "../../include/types.h"
 #include "../../include/constants.h"
@@ -9,41 +12,48 @@
 
 void *bowler_thread(void *arg)
 {
-    player *bowler = (player *)arg;
+    (void)arg;  /* bowler identity comes from current_bowler_id, not the arg */
     int legal_balls = 0;
-    while (1)
+
+    while (!innings_over)
     {
-        // stop condition
-        if (is_match_over())
-            break;
+        pthread_mutex_lock(&scheduler_mutex);
+        player *bowler = &bowling_team[current_bowler_id];
+        pthread_mutex_unlock(&scheduler_mutex);
+
         delivery_event ball = generate_delivery(bowler);
-            
-        // write using pitch abstraction
         pitch_write(ball);
-        // wait until batsman consumes
+
+        if (innings_over) break;
+
+        /* Wait until batsman has consumed this ball */
         pthread_mutex_lock(&pitch_mutex);
-        while (!ball_consumed){
-            if(is_match_over()) break;
+        while (!ball_consumed && !innings_over)
             pthread_cond_wait(&ball_consumed_cond, &pitch_mutex);
-        }
         pthread_mutex_unlock(&pitch_mutex);
-        // 🔹 update scoreboard (only legal ball increments)
+
+        if (innings_over) break;
+
         bool is_legal = (ball.extra != WIDE && ball.extra != NO_BALL);
+
+        pthread_mutex_lock(&score_mutex);
         update_bowler_ball(bowler, is_legal);
         if (is_legal)
         {
             legal_balls++;
-            update_ball(); // scheduler update
+            update_match_intensity(&match);
         }
-        // 🔹 handle over completion
-        if (legal_balls == 6)
+        pthread_mutex_unlock(&score_mutex);
+
+        if (is_legal && legal_balls == 6)
         {
-            pthread_mutex_lock(&scheduler_mutex);
-            end_over(bowling_team, TEAM_SIZE);
-            current_bowler_id = select_next_bowler(bowling_team, TEAM_SIZE);
-            pthread_mutex_unlock(&scheduler_mutex);
             legal_balls = 0;
+            /* end_over handles strike swap + bowler selection, all under one lock */
+            end_over(bowling_team, TEAM_SIZE);
+            printf("  [Over %d complete] Bowler -> %d\n",
+                   match.overs, current_bowler_id);
         }
     }
+
     pthread_exit(NULL);
 }
