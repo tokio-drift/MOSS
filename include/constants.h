@@ -3,6 +3,9 @@
 
 #define TEAM_SIZE 11
 #define PITCH_SIZE 6
+#define MAX_BOWLERS 1
+#define MAX_FIELDERS 10
+#define MAX_BATSMEN 2
 #define MAX_SPEED_PACER 160
 #define MIN_SPEED_PACER 100
 #define MAX_SPEED_SPIN 120

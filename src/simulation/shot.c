@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "../../include/scoreboard.h"
 #include "../../include/types.h"
 #include "../../include/constants.h"
-#include "../../include/scoreboard.h"
 
 shot_result play_shot(player *batsman, player *bowler, delivery_event ball)
 {

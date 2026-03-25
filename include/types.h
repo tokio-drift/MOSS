@@ -2,19 +2,20 @@
 #define TYPES_H
 
 #include <stdbool.h>
+#include "./constants.h"
 
 typedef struct
 {
     enum ball_type ball_type;
     int speed;
-    int extra; // shows type of extra
+    int extra;
 } delivery_event;
 
 typedef struct
 {
     int runs;
-    bool aerial; // 0 for in ground and 1 for air
-    bool wicket; // 0 if no wicket else 1
+    bool aerial;
+    bool wicket;
 } shot_result;
 
 typedef struct
@@ -29,22 +30,26 @@ typedef struct
     int match_intensity;
 } scoreboard;
 
+/* played states */
+#define PLAYER_DNB     0
+#define PLAYER_BATTING 1
+#define PLAYER_OUT     2
+
 typedef struct
 {
-    // Defined before game
     int id;
     int bowling_skill;
     int fielding_skill;
     int batting_skill;
-    bool bowler_type; // 0 for pace and 1 for spin.
-    int batsmen_type; // 0 for top-order, 1 for middle-order, 2 for lower-order.
+    bool bowler_type;  /* 0 = pace, 1 = spin */
+    int batsmen_type;  /* 0 = opener, 1 = anchor, 2 = finisher, 3 = allrounder */
 
-    // Runtime modified
     int overs_bowled;
     int runs_conceded;
     int wickets_taken;
     int runs_scored;
     int balls_faced;
-    int played; // DNB, Playing, Out
+    int played;        /* PLAYER_DNB / PLAYER_BATTING / PLAYER_OUT */
 } player;
+
 #endif
