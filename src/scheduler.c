@@ -1,210 +1,198 @@
+// src/scheduler.c
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include "../include/scheduler.h"
 #include "../include/types.h"
+#include "../include/scoreboard.h"
+#include "../include/match.h"
+
 int current_bowler_id = 0;
 int striker_id = 0;
 int non_striker_id = 1;
 int next_batsman_id = 2;
-int scheduling_policy = SCHED_RR;
+int scheduling_policy = SCHED_RoR;
 pthread_mutex_t scheduler_mutex;
+
 void init_scheduler()
 {
     pthread_mutex_init(&scheduler_mutex, NULL);
     current_bowler_id = 0;
 }
+
 void set_scheduling_policy(int policy)
 {
     scheduling_policy = policy;
 }
-int get_phase(scoreboard *match)
+
+int get_phase(scoreboard *m)
 {
-    if (match->overs < 6)
-        return 0; // powerplay
-    else if (match->overs < 16)
-        return 1; // middle
-    else
-        return 2; // death
+    if (m->overs < 6)  return 0;
+    else if (m->overs < 16) return 1;
+    else return 2;
 }
-int compute_intensity(scoreboard *match)
+
+int compute_intensity(scoreboard *m)
 {
-    if (match->innings == 0)
-        return 0;
-    float current_rr = (float)match->score / (match->overs + 1);
-    float required_rr = (float)(match->target - match->score) /
-                        (20 - match->overs + 1);
+    if (m->innings == 0) return 0;
+    float current_rr  = (float)m->score / (m->overs + 1);
+    float required_rr = (float)(m->target - m->score) / (20 - m->overs + 1);
     return (int)(required_rr - current_rr);
 }
+
+/* Must be called WITHOUT scheduler_mutex held */
 int select_next_bowler(player team[], int n)
 {
     pthread_mutex_lock(&scheduler_mutex);
     int result;
-    if (scheduling_policy == SCHED_RR)
+    if (scheduling_policy == SCHED_RoR)
         result = schedule_rr(team, n);
     else if (scheduling_policy == SCHED_PRIORITY)
-        result = schedule_priority(team, n, NULL);
+        result = schedule_priority(team, n, &match);
     else
         result = schedule_sjf(team, n);
     current_bowler_id = result;
     pthread_mutex_unlock(&scheduler_mutex);
     return result;
 }
+
+/* Called with scheduler_mutex already held */
+static int select_next_bowler_locked(player team[], int n)
+{
+    int result;
+    if (scheduling_policy == SCHED_RoR)
+        result = schedule_rr(team, n);
+    else if (scheduling_policy == SCHED_PRIORITY)
+        result = schedule_priority(team, n, &match);
+    else
+        result = schedule_sjf(team, n);
+    current_bowler_id = result;
+    return result;
+}
+
 int schedule_rr(player team[], int n)
 {
     int start = current_bowler_id;
-
     for (int i = 1; i <= n; i++)
     {
         int idx = (start + i) % n;
         if (team[idx].overs_bowled < 4)
             return idx;
     }
-
     return start;
 }
+
 int schedule_sjf(player team[], int n)
 {
-    int min_overs = INT_MAX;
-    int best = 0;
+    int min_overs = INT_MAX, best = 0;
     for (int i = 0; i < n; i++)
     {
-        if (team[i].overs_bowled < 4)
+        if (team[i].overs_bowled < 4 && team[i].overs_bowled < min_overs)
         {
-            if (team[i].overs_bowled < min_overs)
-            {
-                min_overs = team[i].overs_bowled;
-                best = i;
-            }
-        }
-    }
-    return best;
-}
-int schedule_priority(player team[], int n, scoreboard *match)
-{
-    int best = -1;
-    int best_score = INT_MIN;
-    int phase = get_phase(match);
-    int intensity = compute_intensity(match);
-    for (int i = 0; i < n; i++)
-    {
-        if (team[i].overs_bowled >= 4)
-            continue;
-        int score = 0;
-        // skill
-        score += team[i].bowling_skill * 2;
-        // fatigue
-        score -= team[i].overs_bowled * 3;
-        // phase logic
-        if (phase == 0) // powerplay
-        {
-            if (team[i].bowler_type == 0) // pace
-                score += 10;
-            else
-                score -= 5;
-        }
-        else if (phase == 1) // middle
-        {
-            if (team[i].bowler_type == 1) // spin
-                score += 8;
-        }
-        else // death
-        {
-            if (team[i].bowler_type == 0)
-                score += 12;
-        }
-        // match intensity
-        if (intensity > 2)
-            score += team[i].bowling_skill * 2;
-        // small randomness
-        score += rand() % 3;
-        if (score > best_score)
-        {
-            best_score = score;
+            min_overs = team[i].overs_bowled;
             best = i;
         }
     }
-    if (best == -1)
-        best = 0;
     return best;
 }
+
+int schedule_priority(player team[], int n, scoreboard *m)
+{
+    int best = -1, best_score = INT_MIN;
+    int phase = get_phase(m);
+    int intensity = compute_intensity(m);
+
+    for (int i = 0; i < n; i++)
+    {
+        if (team[i].overs_bowled >= 4) continue;
+        int score = team[i].bowling_skill * 2 - team[i].overs_bowled * 3;
+        if (phase == 0) score += (team[i].bowler_type == 0) ? 10 : -5;
+        else if (phase == 1) score += (team[i].bowler_type == 1) ? 8 : 0;
+        else score += (team[i].bowler_type == 0) ? 12 : 0;
+        if (intensity > 2) score += team[i].bowling_skill * 2;
+        score += rand() % 3;
+        if (score > best_score) { best_score = score; best = i; }
+    }
+    return (best == -1) ? 0 : best;
+}
+
 void init_batting_order()
 {
-    striker_id = 0;
+    striker_id     = 0;
     non_striker_id = 1;
     next_batsman_id = 2;
 }
-int select_next_batsman(player team[], int n, scoreboard *match)
+
+int select_next_batsman_locked(player team[], int n, scoreboard *m)
 {
-    int best = -1;
-    int best_score = INT_MIN;
-    int intensity = compute_intensity(match);
+    int best = -1, best_score = INT_MIN;
+    int intensity = compute_intensity(m);
+
     for (int i = next_batsman_id; i < n; i++)
     {
-        int score = 0;
-        // base skill
-        score += team[i].batting_skill * 2;
-        // type-based
-        if (intensity > 2)
-        {
-            if (team[i].batsmen_type == 2) // finisher
-                score += 15;
-        }
-        else if (intensity < 0)
-        {
-            if (team[i].batsmen_type == 1) // anchor
-                score += 10;
-        }
-        if (match->wickets < 2)
-        {
-            if (team[i].batsmen_type == 0) // opener
-                score += 10;
-        }
-        if (match->wickets >= 4)
-        {
-            if (team[i].batsmen_type == 3) // allrounder
-                score += 10;
-        }
+        if (team[i].played == PLAYER_OUT) continue;
+        int score = team[i].batting_skill * 2;
+        if (intensity > 2  && team[i].batsmen_type == 2) score += 15;
+        if (intensity < 0  && team[i].batsmen_type == 1) score += 10;
+        if (m->wickets < 2 && team[i].batsmen_type == 0) score += 10;
+        if (m->wickets >= 4 && team[i].batsmen_type == 3) score += 10;
         score += rand() % 3;
-        if (score > best_score)
-        {
-            best_score = score;
-            best = i;
-        }
+        if (score > best_score) { best_score = score; best = i; }
     }
-    return best;
+    return best; /* -1 means all out */
 }
-void on_wicket()
+
+/*
+ * on_wicket: called with score_mutex held (from batsman.c).
+ * Acquires scheduler_mutex internally.
+ * Returns new striker's player-id, or -1 if side all out.
+ */
+int on_wicket()
 {
     pthread_mutex_lock(&scheduler_mutex);
-    striker_id = next_batsman_id;
-    next_batsman_id++;
+    int next = select_next_batsman_locked(batting_team, TEAM_SIZE, &match);
+    if (next == -1)
+    {
+        /* All out - signal by leaving striker_id unchanged; caller checks wickets */
+        pthread_mutex_unlock(&scheduler_mutex);
+        return -1;
+    }
+    striker_id      = next;
+    next_batsman_id = next + 1;
     pthread_mutex_unlock(&scheduler_mutex);
+    return next;
 }
+
 void swap_strike()
 {
     pthread_mutex_lock(&scheduler_mutex);
-    int temp = striker_id;
-    striker_id = non_striker_id;
-    non_striker_id = temp;
+    int tmp = striker_id;
+    striker_id     = non_striker_id;
+    non_striker_id = tmp;
     pthread_mutex_unlock(&scheduler_mutex);
 }
 
-int get_striker()
-{
-    return striker_id;
-}
+int get_striker()     { return striker_id; }
+int get_non_striker() { return non_striker_id; }
 
-int get_non_striker()
-{
-    return non_striker_id;
-}
+/*
+ * end_over: swap strike + choose new bowler.
+ * Must be called WITHOUT scheduler_mutex held.
+ */
 void end_over(player team[], int n)
 {
-    swap_strike();
-    select_next_bowler(team, n);
+    pthread_mutex_lock(&scheduler_mutex);
+    /* swap strike */
+    int tmp = striker_id;
+    striker_id     = non_striker_id;
+    non_striker_id = tmp;
+    /* pick new bowler */
+    select_next_bowler_locked(team, n);
+    pthread_mutex_unlock(&scheduler_mutex);
 }
-void update_match_intensity(scoreboard *match)
+
+void update_match_intensity(scoreboard *m)
 {
-    match->match_intensity = compute_intensity(match);
+    m->match_intensity = compute_intensity(m);
 }
