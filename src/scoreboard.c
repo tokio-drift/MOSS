@@ -1,5 +1,3 @@
-// src/scoreboard.c
-
 #include <stdio.h>
 #include <pthread.h>
 #include "../include/scoreboard.h"
@@ -29,7 +27,6 @@ void update_batsman_stats(player *batsman, int runs, bool is_legal)
 void mark_batsman_out(player *batsman)
 {
     batsman->played = PLAYER_OUT;
-    /* wickets counter incremented by caller to avoid double-count */
 }
 
 void update_bowler_runs(player *bowler, int runs)
@@ -39,7 +36,7 @@ void update_bowler_runs(player *bowler, int runs)
 
 void update_bowler_ball(player *bowler, bool is_legal)
 {
-    if (is_legal) bowler->overs_bowled++;  /* counts legal balls; /6 = overs */
+    if (is_legal) bowler->overs_bowled++;
 }
 
 void update_bowler_wicket(player *bowler)
@@ -98,16 +95,16 @@ void reset_players(player team[], int n)
 {
     for (int i = 0; i < n; i++)
     {
-        team[i].runs_scored    = 0;
-        team[i].balls_faced    = 0;
-        team[i].wickets_taken  = 0;
-        team[i].runs_conceded  = 0;
-        team[i].overs_bowled   = 0;
-        team[i].played         = PLAYER_DNB;
+        // Only need to reset runtime stats
+        team[i].runs_scored   = 0;
+        team[i].balls_faced   = 0;
+        team[i].wickets_taken = 0;
+        team[i].runs_conceded = 0;
+        team[i].overs_bowled  = 0;
+        team[i].played        = PLAYER_DNB;
     }
 }
 
-/* ---- printing ---- */
 void print_batting_card(player team[], int n)
 {
     printf("%-4s %-12s %-6s %-6s\n", "ID", "Status", "Runs", "Balls");
