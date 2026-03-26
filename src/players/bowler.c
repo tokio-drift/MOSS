@@ -1,5 +1,3 @@
-// src/players/bowler.c
-
 #include <stdlib.h>
 #include <stdio.h>
 #include "../../include/pitch.h"
@@ -12,7 +10,7 @@
 
 void *bowler_thread(void *arg)
 {
-    (void)arg;  /* bowler identity comes from current_bowler_id, not the arg */
+    (void)arg;
     int legal_balls = 0;
 
     while (!innings_over)
@@ -26,7 +24,7 @@ void *bowler_thread(void *arg)
 
         if (innings_over) break;
 
-        /* Wait until batsman has consumed this ball */
+        // Need to wait until batsman consumes ball
         pthread_mutex_lock(&pitch_mutex);
         while (!ball_consumed && !innings_over)
             pthread_cond_wait(&ball_consumed_cond, &pitch_mutex);
@@ -48,7 +46,7 @@ void *bowler_thread(void *arg)
         if (is_legal && legal_balls == 6)
         {
             legal_balls = 0;
-            /* end_over handles strike swap + bowler selection, all under one lock */
+            // & Will handle strike swap and bowler selection
             end_over(bowling_team, TEAM_SIZE);
             printf("  [Over %d complete] Bowler -> %d\n",
                    match.overs, current_bowler_id);

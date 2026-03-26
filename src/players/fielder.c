@@ -1,5 +1,3 @@
-// src/players/fielder.c
-
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -38,6 +36,7 @@ int select_fielder(player fielding_team[], int n)
     return rand() % n;
 }
 
+// ! Move catching logic here?
 void *fielder_thread(void *arg)
 {
     player *f  = (player *)arg;
@@ -52,9 +51,8 @@ void *fielder_thread(void *arg)
 
         if (innings_over) break;
 
-        /* Catch attempt is done in batsman.c via attempt_catch().
-           The fielder thread just needs to be woken so the cond_wait
-           doesn't block it permanently. */
+        // Catch logic and probabilities in batsman thread 
+        // Just woken up so cond_wait doesn't block it permanently
     }
 
     pthread_exit(NULL);
@@ -65,7 +63,7 @@ void reset_fielder_state()
     pthread_mutex_lock(&fielder_mutex);
     active_fielder_id = -1;
     catch_taken       = false;
-    /* Wake all fielders so none stays stuck after innings ends */
+    // Wake all fielders so none stays stuck after innings ends
     for (int i = 0; i < TEAM_SIZE; i++)
         pthread_cond_signal(&fielder_cond[i]);
     pthread_mutex_unlock(&fielder_mutex);
