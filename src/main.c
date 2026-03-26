@@ -151,7 +151,15 @@ static void play_innings(int innings_num)
 int main()
 {
     srand((unsigned)time(NULL));
-
+    printf(" __       __   ______    ______    ______  \n");
+    printf("|  \\     /  \\ /      \\  /      \\  /      \\ \n");
+    printf("| $$\\   /  $$|  $$$$$$\\|  $$$$$$\\|  $$$$$$\\\n");
+    printf("| $$$\\ /  $$$| $$  | $$| $$___\\$$| $$___\\$$\n");
+    printf("| $$$$\\  $$$$| $$  | $$ \\$$    \\  \\$$    \\ \n");
+    printf("| $$\\$$ $$ $$| $$  | $$ _\\$$$$$$\\ _\\$$$$$$\\\n");
+    printf("| $$ \\$$$| $$| $$__/ $$|  \\__| $$|  \\__| $$\n");
+    printf("| $$  \\$ | $$ \\$$    $$ \\$$    $$ \\$$    $$\n");
+    printf(" \\$$      \\$$  \\$$$$$$   \\$$$$$$   \\$$$$$$ \n");
     init_pitch();
     init_scoreboard();
     init_scheduler();
@@ -183,7 +191,6 @@ int main()
     get_score(&inn2_runs, &inn2_wkts, &inn2_overs, &inn2_balls);
     int team2_score = inn2_runs;
 
-    
     printf("\n========================================\n");
     printf("           MATCH RESULT\n");
     printf("========================================\n");
