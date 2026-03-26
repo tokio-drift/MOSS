@@ -30,26 +30,27 @@ typedef struct
     int match_intensity;
 } scoreboard;
 
-/* played states */
 #define PLAYER_DNB     0
 #define PLAYER_BATTING 1
 #define PLAYER_OUT     2
 
 typedef struct
 {
-    int id;
-    int bowling_skill;
-    int fielding_skill;
-    int batting_skill;
-    bool bowler_type;  /* 0 = pace, 1 = spin */
-    int batsmen_type;  /* 0 = opener, 1 = anchor, 2 = finisher, 3 = allrounder */
+    int  id;
+    bool is_keeper;
 
-    int overs_bowled;
-    int runs_conceded;
-    int wickets_taken;
-    int runs_scored;
-    int balls_faced;
-    int played;        /* PLAYER_DNB / PLAYER_BATTING / PLAYER_OUT */
+    int  bowling_skill;
+    int  fielding_skill;
+    int  batting_skill;
+    bool bowler_type;
+    int  batsmen_type;
+
+    int  overs_bowled;
+    int  runs_conceded;
+    int  wickets_taken;
+    int  runs_scored;
+    int  balls_faced;
+    int  played;
 } player;
 
 #endif

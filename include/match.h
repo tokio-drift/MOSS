@@ -9,8 +9,6 @@ extern player team2[TEAM_SIZE];
 
 extern player *batting_team;
 extern player *bowling_team;
-
-/* set when innings is over so threads can exit */
 extern volatile int innings_over;
 
 #endif
