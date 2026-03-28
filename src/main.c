@@ -255,6 +255,7 @@ static void play_innings(int innings_num, const char *sched_name)
     innings_over = 0;
     reset_pitch();
     init_batting_order();
+    init_runout();
     select_next_bowler(bowling_team, TEAM_SIZE);
 
     const char *bat_name  = (batting_team == team1) ? team1_name : team2_name;
@@ -440,7 +441,6 @@ int main(int argc, char *argv[])
     init_scheduler();
     init_fielders();
     gantt_init();
-    init_runout();
 
     load_team(team1, team_registry[team1_idx].squad, TEAM_SIZE);
     load_team(team2, team_registry[team2_idx].squad, TEAM_SIZE);
