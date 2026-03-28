@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
+#include <string.h>
 
 #include "../../include/pitch.h"
 #include "../../include/types.h"
@@ -47,6 +48,7 @@ void *batsman_thread(void *arg)
         player *batsman = &batting_team[sid];
         player *bowler  = &bowling_team[bowler_i];
 
+        /* ---- Extra deliveries (wide / no-ball) ---- */
         if (ball.extra != NO_EXTRA)
         {
             pthread_mutex_lock(&score_mutex);
@@ -70,6 +72,7 @@ void *batsman_thread(void *arg)
             continue;
         }
 
+        /* ---- Normal delivery ---- */
         shot_result r  = play_shot(batsman, bowler, ball);
         int fielder_id = -1;
         int caught     = 0;
@@ -103,6 +106,7 @@ void *batsman_thread(void *arg)
             pthread_mutex_unlock(&fielder_mutex);
         }
 
+        /* ---- Update scoreboard (score_mutex held) ---- */
         pthread_mutex_lock(&score_mutex);
 
         if (is_match_over())
@@ -129,16 +133,23 @@ void *batsman_thread(void *arg)
 
         next_ball(true);
         pthread_mutex_unlock(&score_mutex);
+        if (!r.wicket && r.runs > 0)
+        {
+            pthread_mutex_lock(&scheduler_mutex);
+            int non_sid = non_striker_id;
+            pthread_mutex_unlock(&scheduler_mutex);
 
-        if (!r.wicket && r.runs > 0) {
-            int current_end = (striker_id == get_striker()) ? END_1 : END_2;
-            int target_end = (r.runs % 2 == 0) ? current_end : (current_end == END_1 ? END_2 : END_1);
-            
-            if (acquire_end(sid, target_end)) {
-                if (r.runs % 2 == 1) swap_strike();
-                release_end(sid, current_end);
-            } else {
-                r.wicket = true;
+            int victim = attempt_run(sid, non_sid, r.runs);
+            if (victim >= 0)
+            {
+                if (victim == sid)
+                    on_wicket();
+                r.wicket = true;          /* for gantt */
+                r.runout = true;          /* for log   */
+                strncpy(r.runout_name,
+                        batting_team[victim].name,
+                        sizeof(r.runout_name) - 1);
+                r.runout_name[sizeof(r.runout_name) - 1] = '\0';
             }
         }
 
