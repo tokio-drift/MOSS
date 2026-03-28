@@ -42,9 +42,29 @@ void gantt_record(delivery_event *ball, player *bowler, player *batsman,
     e->innings       = innings;
 }
 
+/* -----------------------------------------------------------------------
+ * Per-bowler accumulated thread time (ns).
+ * ---------------------------------------------------------------------- */
+static long long bowler_time_ns[TEAM_SIZE * 2];
+
+static void compute_bowler_times(int innings)
+{
+    for (int i = 0; i < TEAM_SIZE * 2; i++) bowler_time_ns[i] = 0;
+    for (int i = 0; i < gantt_count; i++)
+    {
+        gantt_event *e = &gantt_log[i];
+        if (e->innings != innings) continue;
+        int id = e->bowler_id;
+        if (id >= 0 && id < TEAM_SIZE * 2)
+            bowler_time_ns[id] += e->consumed_ns - e->bowled_ns;
+    }
+}
+
 // col values: 0=empty  1=top  2=middle  3=tail  4=wicket
-#define BAR_W 68
-#define LABEL_W 14
+// BAR_W reduced by 4 to make room for the thread-time column
+#define BAR_W    64
+#define LABEL_W  14
+#define TIME_W   10   /* " (xx.xms)" */
 
 static void render_row(int bowler_id, int innings,
                        long long t_min, long long t_range,
@@ -160,8 +180,8 @@ static void middle_stats(int innings, int *cnt_out, double *avg_ms_out)
     *avg_ms_out = cnt > 0 ? (double)total / cnt / 1e6 : 0.0;
 }
 
-// build the axis line: "0ms      Nms      2Nms     ..." across BAR_W chars
-static void build_axis(long long t_range_ms, char out[BAR_W + 1])
+// build the axis line with 0.1ms (100µs) granularity: "0.0ms  N.Nms  ..."
+static void build_axis(long long t_range_ns, char out[BAR_W + 1])
 {
     memset(out, ' ', BAR_W);
     out[BAR_W] = '\0';
@@ -170,11 +190,11 @@ static void build_axis(long long t_range_ms, char out[BAR_W + 1])
     for (int t = 0; t < n_ticks; t++)
     {
         int pos = t * (BAR_W - 1) / (n_ticks - 1);
-        long long tick_ms = t_range_ms * t / (n_ticks - 1);
-        char label[16];
-        snprintf(label, sizeof(label), "%lldms", tick_ms);
+        /* value in units of 0.1ms (100µs) */
+        double tick_ms = (double)t_range_ns * t / (n_ticks - 1) / 1e6;
+        char label[20];
+        snprintf(label, sizeof(label), "%.1fms", tick_ms);
         int len = (int)strlen(label);
-        // right-align last tick so it doesn't overflow
         if (t == n_ticks - 1) pos = pos - len + 1;
         if (pos < 0) pos = 0;
         for (int k = 0; k < len && pos + k < BAR_W; k++)
@@ -182,7 +202,7 @@ static void build_axis(long long t_range_ms, char out[BAR_W + 1])
     }
 }
 
-#define SEP_W (LABEL_W + 1 + BAR_W)
+#define SEP_W (LABEL_W + 1 + TIME_W + 1 + BAR_W)
 
 static void print_sep(FILE *f)
 {
@@ -203,27 +223,35 @@ static void print_innings_block(int innings, long long t_min, long long t_range,
             ANSI_RESET, innings + 1, bat_team);
     fprintf(txt, "\n  Innings %d  |  Batting: %s\n", innings + 1, bat_team);
 
-    // axis
+    // axis — pass raw ns range
     char axis[BAR_W + 1];
-    build_axis(t_range / 1000000LL, axis);
-    fprintf(term, "  %-*s|%s\n", LABEL_W, "Bowler", axis);
-    fprintf(txt,  "  %-*s|%s\n", LABEL_W, "Bowler", axis);
+    build_axis(t_range, axis);
+    fprintf(term, "  %-*s %-*s|%s\n", LABEL_W, "Bowler", TIME_W, " (thread)", axis);
+    fprintf(txt,  "  %-*s %-*s|%s\n", LABEL_W, "Bowler", TIME_W, " (thread)", axis);
 
     print_sep(term);
     print_sep(txt);
 
+    compute_bowler_times(innings);
+
     char bar[BAR_W + 1];
     char col[BAR_W + 1];
+    char tbuf[TIME_W + 4];
 
     for (int r = 0; r < nb; r++)
     {
         render_row(ids[r], innings, t_min, t_range, bar, col);
 
-        fprintf(term, "  %-*s|", LABEL_W, names[r]);
+        double tms = (ids[r] >= 0 && ids[r] < TEAM_SIZE * 2)
+                     ? (double)bowler_time_ns[ids[r]] / 1e6
+                     : 0.0;
+        snprintf(tbuf, sizeof(tbuf), "(%.1fms)", tms);
+
+        fprintf(term, "  %-*s %-*s|", LABEL_W, names[r], TIME_W, tbuf);
         print_colored_bar(bar, col, term);
         fputc('\n', term);
 
-        fprintf(txt, "  %-*s|%s\n", LABEL_W, names[r], bar);
+        fprintf(txt, "  %-*s %-*s|%s\n", LABEL_W, names[r], TIME_W, tbuf, bar);
     }
 
     print_sep(term);
@@ -248,6 +276,7 @@ static void print_hdr_line(FILE *f, const char *left, const char *mid)
 }
 
 void gantt_print(const char *sched_name,
+                 const char *match_title,
                  int t1_runs, int t1_wkts,
                  int t2_runs, int t2_wkts)
 {
@@ -260,10 +289,9 @@ void gantt_print(const char *sched_name,
     long long t_range = t_max - t_min;
     if (t_range <= 0) t_range = 1;
 
-    // --- terminal header ---
     fprintf(term, "\n" ANSI_BOLD);
     fprintf(term, "  +-------------------------------------------------------------------------------+\n");
-    fprintf(term, "  |  GANTT  |  Scheduling: %-12s  |  India vs Australia              |\n", sched_name);
+    fprintf(term, "  |  GANTT  |  Scheduling: %-6s  |  %-36s  |\n", sched_name, match_title);
     fprintf(term, "  +-------------------------------------------------------------------------------+\n");
     fprintf(term, ANSI_RESET);
 
@@ -273,7 +301,7 @@ void gantt_print(const char *sched_name,
     strftime(tbuf, sizeof(tbuf), "%Y-%m-%d %H:%M:%S", localtime(&now));
     fprintf(txt, "\n");
     fprintf(txt, "  +-------------------------------------------------------------------------------+\n");
-    fprintf(txt, "  |  GANTT  |  Scheduling: %-12s  |  India vs Australia  |  %s  |\n", sched_name, tbuf);
+    fprintf(txt, "  |  GANTT  |  Scheduling: %-6s  |  %-24s  |  %s  |\n", sched_name, match_title, tbuf);
     fprintf(txt, "  +-------------------------------------------------------------------------------+\n");
 
     // legend
@@ -284,16 +312,23 @@ void gantt_print(const char *sched_name,
             ANSI_WICKET "X Wicket" ANSI_RESET "\n");
     fprintf(txt,  "\n  Legend: # Top  # Mid  # Tail  X Wicket\n");
 
-    print_innings_block(0, t_min, t_range, "India",     term, txt);
-    print_innings_block(1, t_min, t_range, "Australia", term, txt);
+    /* parse "Team1 vs Team2" from match_title for innings labels */
+    char t1buf[64], t2buf[64];
+    strncpy(t1buf, match_title, sizeof(t1buf)-1); t1buf[sizeof(t1buf)-1]='\0';
+    strncpy(t2buf, "???", sizeof(t2buf)-1);
+    char *vs = strstr(t1buf, " vs ");
+    if (vs) { *vs = '\0'; strncpy(t2buf, vs+4, sizeof(t2buf)-1); t2buf[sizeof(t2buf)-1]='\0'; }
+
+    print_innings_block(0, t_min, t_range, t1buf, term, txt);
+    print_innings_block(1, t_min, t_range, t2buf, term, txt);
 
     fprintf(term, "\n" ANSI_BOLD
-            "  Result:  India %d/%d     Australia %d/%d\n"
-            ANSI_RESET, t1_runs, t1_wkts, t2_runs, t2_wkts);
+            "  Result:  %s %d/%d     %s %d/%d\n"
+            ANSI_RESET, t1buf, t1_runs, t1_wkts, t2buf, t2_runs, t2_wkts);
     fprintf(txt,
-            "\n  Result:  India %d/%d     Australia %d/%d\n"
+            "\n  Result:  %s %d/%d     %s %d/%d\n"
             "  +-------------------------------------------------------------------------------+\n\n",
-            t1_runs, t1_wkts, t2_runs, t2_wkts);
+            t1buf, t1_runs, t1_wkts, t2buf, t2_runs, t2_wkts);
 
     if (txt != stderr) fclose(txt);
     (void)print_hdr_line;

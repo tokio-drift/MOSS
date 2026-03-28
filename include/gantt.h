@@ -31,6 +31,7 @@ void gantt_record(delivery_event *ball, player *bowler, player *batsman,
                   long long consumed_ns, int over, int ball_num,
                   int runs, bool wicket, int innings);
 void gantt_print(const char *sched_name,
+                 const char *match_title,
                  int t1_runs, int t1_wkts,
                  int t2_runs, int t2_wkts);
 
