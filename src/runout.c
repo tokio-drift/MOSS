@@ -54,3 +54,25 @@ void release_end(int batsman_id, int end_id) {
         }
     }
 }
+bool detect_deadlock() {
+    for (int i = 0; i < request_count; i++) {
+        for (int j = i + 1; j < request_count; j++) {
+            if (requests[i].requested_end == requests[j].held_end &&
+                requests[j].requested_end == requests[i].held_end) {
+                return true; // Deadlock detected
+            }
+        }
+    }
+    return false;
+}
+
+void handle_runout(int batsman_id) {
+
+    pthread_mutex_lock(&score_mutex);
+    player *batsman = &batting_team[batsman_id];
+    mark_batsman_out(batsman);
+    match.wickets++;
+    pthread_mutex_unlock(&score_mutex);
+    
+    printf("Run out: Batsman %d is out due to deadlock!\n", batsman_id);
+}
