@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <pthread.h>
 #include <time.h>
 
@@ -11,6 +12,7 @@
 #include "../include/scheduler.h"
 #include "../include/fielder.h"
 #include "../include/players.h"
+#include "../include/gantt.h"
 
 player team1[TEAM_SIZE];
 player team2[TEAM_SIZE];
@@ -20,84 +22,91 @@ player *bowling_team;
 
 volatile int innings_over = 0;
 
-void init_team(player team[], int n)
+typedef struct
+{
+    const char *name;
+    bool is_keeper;
+    int  bowl;
+    int  field;
+    int  bat;
+    bool btype;      // false=pace, true=spin
+    int  battype;    // BTYPE_TOP / MIDDLE / TAIL
+} player_def;
+
+static const player_def india_squad[TEAM_SIZE] = {
+    { "R. Pant",    true,  -1, 88, 78, false, BTYPE_TOP    },
+    { "V. Kohli",   false,  25, 72, 92, false, BTYPE_TOP    },
+    { "R. Sharma",  false,  20, 70, 88, false, BTYPE_TOP    },
+    { "S. Gill",    false,  18, 68, 82, false, BTYPE_TOP    },
+    { "S. Iyer",    false,  30, 65, 76, false, BTYPE_MIDDLE },
+    { "H. Pandya",  false,  72, 70, 74, false, BTYPE_MIDDLE },
+    { "R. Jadeja",  false,  78, 82, 68, true,  BTYPE_MIDDLE },
+    { "A. Patel",   false,  80, 70, 52, true,  BTYPE_MIDDLE },
+    { "J. Bumrah",  false,  97, 60, 22, false, BTYPE_TAIL   },
+    { "M. Shami",   false,  89, 58, 20, false, BTYPE_TAIL   },
+    { "Y. Chahal",  false,  85, 58, 18, true,  BTYPE_TAIL   },
+};
+
+static const player_def aus_squad[TEAM_SIZE] = {
+    { "M. Wade",    true,  -1, 85, 80, false, BTYPE_TOP    },
+    { "D. Warner",  false,  15, 72, 88, false, BTYPE_TOP    },
+    { "A. Finch",   false,  18, 70, 84, false, BTYPE_TOP    },
+    { "S. Smith",   false,  30, 68, 87, false, BTYPE_TOP    },
+    { "G. Maxwell", false,  68, 72, 82, true,  BTYPE_MIDDLE },
+    { "M. Stoinis", false,  70, 68, 74, false, BTYPE_MIDDLE },
+    { "T. Head",    false,  40, 70, 78, false, BTYPE_MIDDLE },
+    { "P. Cummins", false,  88, 65, 48, false, BTYPE_MIDDLE },
+    { "J. Hazlewood",false, 87, 60, 20, false, BTYPE_TAIL   },
+    { "M. Starc",   false,  92, 62, 24, false, BTYPE_TAIL   },
+    { "A. Zampa",   false,  83, 58, 18, true,  BTYPE_TAIL   },
+};
+
+static void load_team(player team[], const player_def defs[], int n)
 {
     for (int i = 0; i < n; i++)
     {
-        team[i].id             = i;
-        team[i].played         = PLAYER_DNB;
-        team[i].overs_bowled   = 0;
-        team[i].runs_conceded  = 0;
-        team[i].wickets_taken  = 0;
-        team[i].runs_scored    = 0;
-        team[i].balls_faced    = 0;
+        team[i].id            = i;
+        strncpy(team[i].name, defs[i].name, sizeof(team[i].name) - 1);
+        team[i].name[sizeof(team[i].name) - 1] = '\0';
+        team[i].is_keeper     = defs[i].is_keeper;
+        team[i].bowling_skill = defs[i].bowl;
+        team[i].fielding_skill= defs[i].field;
+        team[i].batting_skill = defs[i].bat;
+        team[i].bowler_type   = defs[i].btype;
+        team[i].batsmen_type  = defs[i].battype;
 
-        if (i == 0)
-        {
-            // Wicketkeper: excellent fielder, decent batter, cannot ball
-            team[i].is_keeper      = true;
-            team[i].bowling_skill  = -1;
-            team[i].fielding_skill = 80 + rand() % 20;
-            team[i].batting_skill  = 45 + rand() % 35;
-            team[i].bowler_type    = 0;
-            team[i].batsmen_type   = 0;
-        }
-        else if (i < 4)
-        {
-            // Top order batsmen: high bat skill, moderate ball
-            team[i].is_keeper      = false;
-            team[i].bowling_skill  = 30 + rand() % 40;
-            team[i].fielding_skill = 60 + rand() % 40;
-            team[i].batting_skill  = 65 + rand() % 35;
-            team[i].bowler_type    = rand() % 2;
-            team[i].batsmen_type   = (i == 1) ? 0 : 1;
-        }
-        else if (i < 8)
-        {
-            // All rounders, middle order
-            team[i].is_keeper      = false;
-            team[i].bowling_skill  = 50 + rand() % 40;
-            team[i].fielding_skill = 55 + rand() % 40;
-            team[i].batting_skill  = 50 + rand() % 40;
-            team[i].bowler_type    = rand() % 2;
-            team[i].batsmen_type   = (rand() % 2 == 0) ? 2 : 3;
-        }
-        else
-        {
-            // Tail, great bowlers
-            team[i].is_keeper      = false;
-            team[i].bowling_skill  = 60 + rand() % 40;
-            team[i].fielding_skill = 50 + rand() % 30;
-            team[i].batting_skill  = 20 + rand() % 30;
-            team[i].bowler_type    = rand() % 2;
-            team[i].batsmen_type   = 2;
-        }
+        team[i].played        = PLAYER_DNB;
+        team[i].overs_bowled  = 0;
+        team[i].runs_conceded = 0;
+        team[i].wickets_taken = 0;
+        team[i].runs_scored   = 0;
+        team[i].balls_faced   = 0;
     }
 }
 
-static void play_innings(int innings_num)
+static void play_innings(int innings_num, const char *sched_name)
 {
     innings_over = 0;
     reset_pitch();
     init_batting_order();
     select_next_bowler(bowling_team, TEAM_SIZE);
 
-    FILE *lf = fopen("../logs/log.txt", (innings_num == 0) ? "w" : "a");
+    const char *bat_name = (batting_team == team1) ? "India" : "Australia";
+
+    FILE *lf = fopen(LOG_FILE, (innings_num == 0) ? "w" : "a");
     if (lf)
     {
         fprintf(lf,
                 "\n"
                 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
-                "  INNINGS %d  |  Batting: Team %d\n"
+                "  INNINGS %d  |  Batting: %s  |  Sched: %s\n"
                 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n",
-                innings_num + 1,
-                (batting_team == team1) ? 1 : 2);
+                innings_num + 1, bat_name, sched_name);
         fclose(lf);
     }
 
     printf("\n========================================\n");
-    printf("  INNINGS %d  |  Batting: Team %d\n",
-           innings_num + 1, (batting_team == team1) ? 1 : 2);
+    printf("  INNINGS %d  |  Batting: %s\n", innings_num + 1, bat_name);
     printf("========================================\n");
 
     int slot0 = 0, slot1 = 1;
@@ -112,7 +121,6 @@ static void play_innings(int innings_num)
     for (int i = 0; i < TEAM_SIZE; i++)
         pthread_create(&fielder_tids[i], NULL, fielder_thread, &bowling_team[i]);
 
-    // Poll until the innings end
     while (1)
     {
         pthread_mutex_lock(&score_mutex);
@@ -123,7 +131,6 @@ static void play_innings(int innings_num)
         nanosleep(&ts, NULL);
     }
 
-    // ! Innings over
     innings_over = 1;
     reset_pitch();
     pthread_mutex_lock(&fielder_mutex);
@@ -147,10 +154,37 @@ static void play_innings(int innings_num)
     print_bowling_card(bowling_team, TEAM_SIZE);
 }
 
-
-int main()
+static void print_usage(const char *prog)
 {
+    fprintf(stderr, "Usage: %s -R|-P|-S\n", prog);
+    fprintf(stderr, "  -R  Round-Robin bowler scheduling\n");
+    fprintf(stderr, "  -P  Priority-based bowler scheduling\n");
+    fprintf(stderr, "  -S  Shortest-Job-First bowler scheduling\n");
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc < 2)
+    {
+        print_usage(argv[0]);
+        return 1;
+    }
+
+    int policy;
+    const char *sched_name;
+
+    if      (strcmp(argv[1], "-R") == 0) { policy = SCHED_RoR;      sched_name = "Round-Robin"; }
+    else if (strcmp(argv[1], "-P") == 0) { policy = SCHED_PRIORITY;  sched_name = "Priority";    }
+    else if (strcmp(argv[1], "-S") == 0) { policy = SCHED_SJF;       sched_name = "SJF";         }
+    else
+    {
+        fprintf(stderr, "Unknown flag: %s\n", argv[1]);
+        print_usage(argv[0]);
+        return 1;
+    }
+
     srand((unsigned)time(NULL));
+
     printf(" __       __   ______    ______    ______  \n");
     printf("|  \\     /  \\ /      \\  /      \\  /      \\ \n");
     printf("| $$\\   /  $$|  $$$$$$\\|  $$$$$$\\|  $$$$$$\\\n");
@@ -160,61 +194,69 @@ int main()
     printf("| $$ \\$$$| $$| $$__/ $$|  \\__| $$|  \\__| $$\n");
     printf("| $$  \\$ | $$ \\$$    $$ \\$$    $$ \\$$    $$\n");
     printf(" \\$$      \\$$  \\$$$$$$   \\$$$$$$   \\$$$$$$ \n");
+    printf("\nIndia vs Australia  |  Scheduling: %s\n", sched_name);
+
+    if (system("mkdir -p " LOG_DIR) != 0)
+        fprintf(stderr, "warning: could not create " LOG_DIR "\n");
+
     init_pitch();
     init_scoreboard();
     init_scheduler();
     init_fielders();
-    system("mkdir -p ../logs");
-    init_team(team1, TEAM_SIZE);
-    init_team(team2, TEAM_SIZE);
+    gantt_init();
+    set_scheduling_policy(policy);
 
-    // & Innings 1
+    load_team(team1, india_squad, TEAM_SIZE);
+    load_team(team2, aus_squad,   TEAM_SIZE);
+
+    // innings 1
     batting_team = team1;
     bowling_team = team2;
     reset_players(batting_team, TEAM_SIZE);
     reset_players(bowling_team, TEAM_SIZE);
-    play_innings(0);
+    play_innings(0, sched_name);
     int inn1_runs, inn1_wkts, inn1_overs, inn1_balls;
     get_score(&inn1_runs, &inn1_wkts, &inn1_overs, &inn1_balls);
-    int team1_score = inn1_runs;
 
-    // & Innings 2
-    set_target(team1_score + 1);
+    // innings 2
+    set_target(inn1_runs + 1);
     reset_for_second_innings();
     batting_team = team2;
     bowling_team = team1;
     reset_players(batting_team, TEAM_SIZE);
     reset_players(bowling_team, TEAM_SIZE);
     select_next_bowler(bowling_team, TEAM_SIZE);
-    play_innings(1);
+    play_innings(1, sched_name);
     int inn2_runs, inn2_wkts, inn2_overs, inn2_balls;
     get_score(&inn2_runs, &inn2_wkts, &inn2_overs, &inn2_balls);
-    int team2_score = inn2_runs;
 
     printf("\n========================================\n");
     printf("           MATCH RESULT\n");
     printf("========================================\n");
-    printf("Team 1: %d/%d (%d.%d overs)\n",
-           team1_score, inn1_wkts, inn1_overs, inn1_balls);
-    printf("Team 2: %d/%d (%d.%d overs)\n",
-           team2_score, inn2_wkts, inn2_overs, inn2_balls);
+    printf("India:     %d/%d (%d.%d overs)\n", inn1_runs, inn1_wkts, inn1_overs, inn1_balls);
+    printf("Australia: %d/%d (%d.%d overs)\n", inn2_runs, inn2_wkts, inn2_overs, inn2_balls);
     printf("----------------------------------------\n");
 
-    if (team2_score > team1_score)
+    if (inn2_runs > inn1_runs)
     {
         int wl = 10 - inn2_wkts;
         if (wl < 0) wl = 0;
-        printf("Team 2 wins by %d wicket%s!\n", wl, wl == 1 ? "" : "s");
+        printf("Australia wins by %d wicket%s!\n", wl, wl == 1 ? "" : "s");
     }
-    else if (team1_score > team2_score)
+    else if (inn1_runs > inn2_runs)
     {
-        int rm = team1_score - team2_score;
-        printf("Team 1 wins by %d run%s!\n", rm, rm == 1 ? "" : "s");
+        int rm = inn1_runs - inn2_runs;
+        printf("India wins by %d run%s!\n", rm, rm == 1 ? "" : "s");
     }
     else
         printf("Match tied!\n");
 
     printf("========================================\n");
-    printf("Full ball-by-ball log: ../logs/log.txt\n");
+
+    gantt_print(sched_name,
+                inn1_runs, inn1_wkts,
+                inn2_runs, inn2_wkts);
+
+    printf("\nLog: %s  |  Gantt: %s\n", LOG_FILE, GANTT_TXT);
     return 0;
 }
