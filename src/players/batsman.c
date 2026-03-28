@@ -11,12 +11,12 @@
 #include "../../include/match.h"
 #include "../../include/fielder.h"
 #include "../../include/players.h"
+#include "../../include/gantt.h"
 
 void *batsman_thread(void *arg)
 {
     int slot = *(int *)arg;
 
-    // Non-striker's slot
     if (slot != 0)
     {
         while (!innings_over)
@@ -24,16 +24,19 @@ void *batsman_thread(void *arg)
         pthread_exit(NULL);
     }
 
-    // & What is the purpose of this?
     srand((unsigned)(time(NULL) ^ (uintptr_t)pthread_self()));
 
-    FILE *log_fp = fopen("../logs/log.txt", "a");
+    FILE *log_fp = fopen(LOG_FILE, "a");
     if (!log_fp) log_fp = stderr;
 
     while (!innings_over)
     {
         delivery_event ball = pitch_read();
         if (innings_over) break;
+
+        struct timespec consumed_ts;
+        clock_gettime(CLOCK_MONOTONIC, &consumed_ts);
+        long long consumed_ns = consumed_ts.tv_sec * 1000000000LL + consumed_ts.tv_nsec;
 
         pthread_mutex_lock(&scheduler_mutex);
         int sid      = striker_id;
@@ -43,13 +46,12 @@ void *batsman_thread(void *arg)
         player *batsman = &batting_team[sid];
         player *bowler  = &bowling_team[bowler_i];
 
-        // & EXTRAS
         if (ball.extra != NO_EXTRA)
         {
             pthread_mutex_lock(&score_mutex);
             int extra_runs = 1;
             int bat_runs   = 0;
-            if (rand() % 100 < 10) bat_runs = 1;  // & 10% chance of bye run 
+            if (rand() % 100 < 10) bat_runs = 1;
 
             match.score  += extra_runs + bat_runs;
             match.extras += extra_runs;
@@ -62,10 +64,11 @@ void *batsman_thread(void *arg)
                       (shot_result){.runs=bat_runs, .wicket=false, .aerial=false},
                       -1, 0, false);
             fflush(log_fp);
+            gantt_record(&ball, bowler, batsman, consumed_ns,
+                         match.overs, match.balls, bat_runs, false, match.innings);
             continue;
         }
 
-        // ! Play Shot
         shot_result r  = play_shot(batsman, bowler, ball);
         int fielder_id = -1;
         int caught     = 0;
@@ -73,11 +76,10 @@ void *batsman_thread(void *arg)
 
         if (r.aerial)
         {
-            // * Chances for caught behind
             bool edge_to_keeper = (!r.wicket && rand() % 100 < 20) ||
                                   (r.wicket  && rand() % 100 < 35);
             if (edge_to_keeper)
-                fielder_id = 0;  // ! Keeper always bowling_team[0]
+                fielder_id = 0;
             else
                 fielder_id = select_fielder(bowling_team, TEAM_SIZE);
 
@@ -100,7 +102,6 @@ void *batsman_thread(void *arg)
             pthread_mutex_unlock(&fielder_mutex);
         }
 
-        // ! Score Update 
         pthread_mutex_lock(&score_mutex);
 
         if (is_match_over())
@@ -128,15 +129,17 @@ void *batsman_thread(void *arg)
         next_ball(true);
         pthread_mutex_unlock(&score_mutex);
 
-        // ! Strike Rotation (I missed this earlier, caused deadlock somehow)
         if (!r.wicket && (r.runs % 2 == 1))
             swap_strike();
+
+        gantt_record(&ball, bowler, batsman, consumed_ns,
+                     match.overs, match.balls, r.runs, r.wicket, match.innings);
 
         log_event(log_fp, bowler, batsman, ball, r, fielder_id, caught, caught_by_keeper);
         fflush(log_fp);
         reset_fielder_state();
     }
 
-    fclose(log_fp);
+    if (log_fp != stderr) fclose(log_fp);
     pthread_exit(NULL);
 }
