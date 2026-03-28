@@ -11,6 +11,7 @@
 #include "../../include/match.h"
 #include "../../include/fielder.h"
 #include "../../include/players.h"
+#include "../../include/runout.h"
 #include "../../include/gantt.h"
 
 void *batsman_thread(void *arg)
@@ -129,8 +130,17 @@ void *batsman_thread(void *arg)
         next_ball(true);
         pthread_mutex_unlock(&score_mutex);
 
-        if (!r.wicket && (r.runs % 2 == 1))
-            swap_strike();
+        if (!r.wicket && r.runs > 0) {
+            int current_end = (striker_id == get_striker()) ? END_1 : END_2;
+            int target_end = (r.runs % 2 == 0) ? current_end : (current_end == END_1 ? END_2 : END_1);
+            
+            if (acquire_end(sid, target_end)) {
+                if (r.runs % 2 == 1) swap_strike();
+                release_end(sid, current_end);
+            } else {
+                r.wicket = true;
+            }
+        }
 
         gantt_record(&ball, bowler, batsman, consumed_ns,
                      match.overs, match.balls, r.runs, r.wicket, match.innings);
