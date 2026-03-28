@@ -11,6 +11,10 @@
 #define MAX_SPEED_SPIN 120
 #define MIN_SPEED_SPIN 80
 
+#define END_1 0
+#define END_2 1
+#define NUM_ENDS 2
+
 #define LOG_DIR   "./logs"
 #define LOG_FILE  "./logs/log.txt"
 #define GANTT_TXT "./logs/gantt.txt"
