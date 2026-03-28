@@ -328,97 +328,6 @@ static void play_innings(int innings_num, const char *sched_name)
 }
 
 /* -----------------------------------------------------------------------
- *  TUI file viewer (scroll with arrow keys, q to quit)
- * --------------------------------------------------------------------- */
-static void tui_view_file(const char *path)
-{
-    struct termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-
-    FILE *fp = fopen(path, "r");
-    if (!fp)
-    {
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-        printf("\n  \033[31mCannot open %s\033[0m\n", path);
-        return;
-    }
-
-    char **lines = NULL;
-    int nlines = 0, cap = 0;
-    char buf[512];
-    while (fgets(buf, sizeof(buf), fp))
-    {
-        int len = (int)strlen(buf);
-        if (len > 0 && buf[len-1] == '\n') buf[len-1] = '\0';
-        if (nlines >= cap) { cap = cap ? cap * 2 : 256; lines = realloc(lines, cap * sizeof(char*)); }
-        lines[nlines++] = strdup(buf);
-    }
-    fclose(fp);
-
-    int top = 0, rows = 35;
-
-    while (1)
-    {
-        printf("\033[2J\033[H");
-        printf("\033[1m\033[36m  ─── %s  (%d lines) ───────────────────────────  \033[2m↑↓ scroll  q quit\033[0m\n\n", path, nlines);
-        int end = top + rows;
-        if (end > nlines) end = nlines;
-        for (int i = top; i < end; i++)
-            printf("  \033[2m%4d\033[0m  %s\n", i + 1, lines[i]);
-        /* fill blank lines if near end */
-        for (int i = end - top; i < rows; i++) printf("\n");
-        printf("\n\033[1m\033[33m  [↑/↓] scroll   [q] quit\033[0m\n");
-        fflush(stdout);
-
-        unsigned char ch = 0;
-        read(STDIN_FILENO, &ch, 1);
-        if (ch == 'q' || ch == 'Q') break;
-        if (ch == 27)
-        {
-            unsigned char seq[2] = {0,0};
-            read(STDIN_FILENO, &seq[0], 1);
-            read(STDIN_FILENO, &seq[1], 1);
-            if (seq[0] == '[')
-            {
-                if (seq[1] == 'A') { if (top > 0) top--; }
-                if (seq[1] == 'B') { if (top + rows < nlines) top++; }
-                if (seq[1] == '5') { top -= rows; if (top<0) top=0; } /* PgUp */
-                if (seq[1] == '6') { top += rows; if (top+rows>nlines) top=nlines-rows; if(top<0)top=0; }
-            }
-        }
-    }
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    printf("\033[2J\033[H");
-
-    for (int i = 0; i < nlines; i++) free(lines[i]);
-    free(lines);
-}
-
-static void prompt_view_file(const char *label, const char *path)
-{
-    printf("  \033[1m\033[33m[%s]\033[0m  \033[2m%s\033[0m  \033[36m— ENTER to view, any key to skip\033[0m  ",
-           label, path);
-    fflush(stdout);
-
-    struct termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    unsigned char ch = 0;
-    read(STDIN_FILENO, &ch, 1);
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    printf("\n");
-
-    if (ch == '\n' || ch == '\r')
-        tui_view_file(path);
-}
-
-/* -----------------------------------------------------------------------
  *  Arg parsing
  * --------------------------------------------------------------------- */
 static void print_usage(const char *prog)
@@ -598,11 +507,9 @@ int main(int argc, char *argv[])
                 inn1_runs, inn1_wkts,
                 inn2_runs, inn2_wkts);
 
-    /* ---- TUI file viewers ---- */
-    printf("\n\033[1m  Output files — press ENTER on any to open:\033[0m\n\n");
-    prompt_view_file("MATCH LOG",   LOG_FILE);
-    prompt_view_file("GANTT CHART", GANTT_TXT);
-    printf("\n");
+    printf("\033[0m\n\n");
+    printf("\033[2m To view the logs, run: nano ./logs/log.txt\033[0m\n");
+    printf("\033[2m To view the gantt charts, run: nano ./logs/gantt.txt\033[0m\n");
 
     return 0;
 }
