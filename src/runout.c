@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include "../include/runout.h"
@@ -8,71 +9,76 @@
 #include "../include/scoreboard.h"
 
 pthread_mutex_t end_mutexes[NUM_ENDS];
-static resource_request requests[TEAM_SIZE]; 
-static int request_count = 0;
 
-void init_runout() {
-    for (int i = 0; i < NUM_ENDS; i++) {
-        pthread_mutex_init(&end_mutexes[i], NULL);
-    }
-    request_count = 0;
+static pthread_mutex_t runout_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int batsman_end[TEAM_SIZE];   
+
+void init_runout(void)
+{
+    pthread_mutex_lock(&runout_mutex);
+    memset(batsman_end, -1, sizeof(batsman_end));
+    batsman_end[0] = END_1;     
+    batsman_end[1] = END_2;   
+    pthread_mutex_unlock(&runout_mutex);
 }
 
-void destroy_runout() {
-    for (int i = 0; i < NUM_ENDS; i++) {
-        pthread_mutex_destroy(&end_mutexes[i]);
-    }
+void destroy_runout(void)
+{
+    pthread_mutex_lock(&runout_mutex);
+    memset(batsman_end, -1, sizeof(batsman_end));
+    pthread_mutex_unlock(&runout_mutex);
 }
 
-bool acquire_end(int batsman_id, int end_id) {
+int attempt_run(int striker_id, int non_striker_id, int runs)
+{
+    if (runs <= 0) return -1;
+    int runout_prob;
+    if (runs == 1)      runout_prob = 10;
+    else if (runs == 2) runout_prob = 6;
+    else                runout_prob = 2;
 
-    requests[request_count].batsman_id = batsman_id;
-    requests[request_count].requested_end = end_id;
-    requests[request_count].held_end = (end_id == END_1) ? END_2 : END_1; // Assuming they hold the opposite
-    request_count++;
+    bool runout_fires = (rand() % 100 < runout_prob);
 
-    if (detect_deadlock()) {
-        handle_runout(batsman_id);
-        request_count--; // Remove request
-        return false;
-    }
+    pthread_mutex_lock(&runout_mutex);
 
-    pthread_mutex_lock(&end_mutexes[end_id]);
-    return true;
-}
+    int striker_final_end    = (runs % 2 == 1) ? END_2 : END_1;
+    int nonstriker_final_end = (runs % 2 == 1) ? END_1 : END_2;
 
-void release_end(int batsman_id, int end_id) {
-    pthread_mutex_unlock(&end_mutexes[end_id]);
-    
-    for (int i = 0; i < request_count; i++) {
-        if (requests[i].batsman_id == batsman_id) {
-            for (int j = i; j < request_count - 1; j++) {
-                requests[j] = requests[j + 1];
-            }
-            request_count--;
-            break;
+    batsman_end[striker_id]    = striker_final_end;
+    batsman_end[non_striker_id] = nonstriker_final_end;
+
+    int victim = -1;
+
+    if (runout_fires)
+    {
+      
+        victim = (runs % 2 == 1) ? striker_id : non_striker_id;
+
+        pthread_mutex_unlock(&runout_mutex);
+
+        pthread_mutex_lock(&score_mutex);
+        player *bat = &batting_team[victim];
+        if (bat->played != PLAYER_OUT)
+        {
+            mark_batsman_out(bat);
+            match.wickets++;
         }
+        pthread_mutex_unlock(&score_mutex);
+
+        printf("  [RUN OUT] %s - caught short of the crease!\n",
+               batting_team[victim].name);
+        return victim;
     }
+
+    pthread_mutex_unlock(&runout_mutex);
+
+    if (runs % 2 == 1)
+        swap_strike();
+
+    return -1;
 }
-bool detect_deadlock() {
-    for (int i = 0; i < request_count; i++) {
-        for (int j = i + 1; j < request_count; j++) {
-            if (requests[i].requested_end == requests[j].held_end &&
-                requests[j].requested_end == requests[i].held_end) {
-                return true; // Deadlock detected
-            }
-        }
-    }
+
+bool detect_deadlock(void)
+{
     return false;
-}
-
-void handle_runout(int batsman_id) {
-
-    pthread_mutex_lock(&score_mutex);
-    player *batsman = &batting_team[batsman_id];
-    mark_batsman_out(batsman);
-    match.wickets++;
-    pthread_mutex_unlock(&score_mutex);
-    
-    printf("Run out: Batsman %d is out due to deadlock!\n", batsman_id);
 }
