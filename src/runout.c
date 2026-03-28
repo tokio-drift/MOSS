@@ -9,16 +9,15 @@
 #include "../include/scoreboard.h"
 
 pthread_mutex_t end_mutexes[NUM_ENDS];
-
 static pthread_mutex_t runout_mutex = PTHREAD_MUTEX_INITIALIZER;
-static int batsman_end[TEAM_SIZE];   
+static int batsman_end[TEAM_SIZE];  
 
 void init_runout(void)
 {
     pthread_mutex_lock(&runout_mutex);
     memset(batsman_end, -1, sizeof(batsman_end));
-    batsman_end[0] = END_1;     
-    batsman_end[1] = END_2;   
+    batsman_end[0] = END_1;  
+    batsman_end[1] = END_2;  
     pthread_mutex_unlock(&runout_mutex);
 }
 
@@ -33,8 +32,8 @@ int attempt_run(int striker_id, int non_striker_id, int runs)
 {
     if (runs <= 0) return -1;
     int runout_prob;
-    if (runs == 1)      runout_prob = 10;
-    else if (runs == 2) runout_prob = 6;
+    if (runs == 1)      runout_prob = 8;
+    else if (runs == 2) runout_prob = 4;
     else                runout_prob = 2;
 
     bool runout_fires = (rand() % 100 < runout_prob);
@@ -51,11 +50,10 @@ int attempt_run(int striker_id, int non_striker_id, int runs)
 
     if (runout_fires)
     {
-      
+        
         victim = (runs % 2 == 1) ? striker_id : non_striker_id;
 
         pthread_mutex_unlock(&runout_mutex);
-
         pthread_mutex_lock(&score_mutex);
         player *bat = &batting_team[victim];
         if (bat->played != PLAYER_OUT)
