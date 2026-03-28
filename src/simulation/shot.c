@@ -170,7 +170,11 @@ void log_event(FILE *fp,
         return;
     }
 
-    if (r.wicket)
+    if (r.runout)
+    {
+        fprintf(fp, "%d runs  |  OUT! Run Out (%s)\n", r.runs, r.runout_name);
+    }
+    else if (r.wicket)
     {
         if (caught)
         {
