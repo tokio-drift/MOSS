@@ -18,6 +18,8 @@ typedef struct
     int runs;
     bool aerial;
     bool wicket;
+    bool runout;          /* true when dismissed run out */
+    char runout_name[32]; /* name of the batsman run out */
 } shot_result;
 
 typedef struct
@@ -28,7 +30,7 @@ typedef struct
     int balls;
     int extras;
     int target;
-    bool innings;
+    int  innings;
     int match_intensity;
 } scoreboard;
 
