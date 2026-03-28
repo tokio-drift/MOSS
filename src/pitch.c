@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <time.h>
 #include "../include/pitch.h"
 #include "../include/match.h"
 
@@ -30,7 +31,6 @@ void reset_pitch()
     pitch_index   = 0;
     ball_ready    = false;
     ball_consumed = true;
-    // Wake anyone blocked so they can recheck innings_over
     pthread_cond_broadcast(&ball_ready_cond);
     pthread_cond_broadcast(&ball_consumed_cond);
     pthread_mutex_unlock(&pitch_mutex);
@@ -48,8 +48,9 @@ void pitch_write(delivery_event ball)
         return;
     }
 
+    clock_gettime(CLOCK_MONOTONIC, &ball.bowled_at);
     pitch_buffer[pitch_index] = ball;
-    pitch_index = (pitch_index + 1) % PITCH_SIZE;
+    pitch_index   = (pitch_index + 1) % PITCH_SIZE;
     ball_ready    = true;
     ball_consumed = false;
     pthread_cond_broadcast(&ball_ready_cond);

@@ -10,7 +10,7 @@ int current_bowler_id  = 0;
 int striker_id         = 0;
 int non_striker_id     = 1;
 int next_batsman_id    = 2;
-int scheduling_policy  = SCHED_PRIORITY;
+int scheduling_policy  = SCHED_RoR;
 pthread_mutex_t scheduler_mutex;
 
 static inline bool can_bowl(player *p)
@@ -41,7 +41,6 @@ int compute_intensity(scoreboard *m)
     return (int)(required_rr - current_rr);
 }
 
-// ! Internal versions (called with scheduler_mutex already held)
 static int schedule_rr_locked(player team[], int n)
 {
     int start = current_bowler_id;
@@ -51,11 +50,10 @@ static int schedule_rr_locked(player team[], int n)
         if (can_bowl(&team[idx]))
             return idx;
     }
-    // fallback to anyone who can bowl
     for (int i = 0; i < n; i++)
         if (!team[i].is_keeper && team[i].bowling_skill >= 0)
             return i;
-    return 1; 
+    return 1;
 }
 
 static int schedule_sjf_locked(player team[], int n)
@@ -129,7 +127,7 @@ int schedule_sjf(player team[], int n)
 
 int schedule_priority(player team[], int n, scoreboard *m)
 {
-    (void)m; /* uses global match */
+    (void)m;
     pthread_mutex_lock(&scheduler_mutex);
     int r = schedule_priority_locked(team, n);
     pthread_mutex_unlock(&scheduler_mutex);
@@ -152,10 +150,10 @@ static int select_next_batsman_locked(player team[], int n, scoreboard *m)
     {
         if (team[i].played == PLAYER_OUT) continue;
         int score = team[i].batting_skill * 2;
-        if (intensity > 2  && team[i].batsmen_type == 2) score += 15;
-        if (intensity < 0  && team[i].batsmen_type == 1) score += 10;
-        if (m->wickets < 2 && team[i].batsmen_type == 0) score += 10;
-        if (m->wickets >= 4 && team[i].batsmen_type == 3) score += 10;
+        if (intensity > 2  && team[i].batsmen_type == BTYPE_MIDDLE) score += 15;
+        if (intensity < 0  && team[i].batsmen_type == BTYPE_TOP)    score += 10;
+        if (m->wickets < 2 && team[i].batsmen_type == BTYPE_TOP)    score += 10;
+        if (m->wickets >= 7 && team[i].batsmen_type == BTYPE_TAIL)  score += 5;
         score += rand() % 3;
         if (score > best_score) { best_score = score; best = i; }
     }
