@@ -105,32 +105,89 @@ void reset_players(player team[], int n)
     }
 }
 
+/* -----------------------------------------------------------------------
+ *  Pretty scorecard helpers
+ * --------------------------------------------------------------------- */
+#define COL_RESET  "\033[0m"
+#define COL_BOLD   "\033[1m"
+#define COL_CYAN   "\033[36m"
+#define COL_YELLOW "\033[33m"
+#define COL_GREEN  "\033[32m"
+#define COL_RED    "\033[31m"
+#define COL_DIM    "\033[2m"
+#define COL_WHITE  "\033[97m"
+
+/* format balls-count (stored as raw legal deliveries) to "O.B" string */
+static void fmt_overs(int balls, char *buf, int bufsz)
+{
+    snprintf(buf, bufsz, "%d.%d", balls / 6, balls % 6);
+}
+
 void print_batting_card(player team[], int n)
 {
-    printf("%-4s %-12s %-6s %-6s\n", "ID", "Status", "Runs", "Balls");
-    printf("------------------------------------\n");
+    /* header */
+    printf(COL_BOLD COL_CYAN);
+    printf("  %-16s %-10s %5s %6s %7s\n",
+           "Batsman", "Status", "Runs", "Balls", "SR");
+    printf(COL_RESET COL_DIM);
+    printf("  %-16s %-10s %5s %6s %7s\n",
+           "----------------", "----------", "-----", "------", "-------");
+    printf(COL_RESET);
+
     for (int i = 0; i < n; i++)
     {
-        const char *status = (team[i].played == PLAYER_OUT)    ? "Out"     :
-                             (team[i].played == PLAYER_BATTING) ? "Batting" : "DNB";
-        if (team[i].played != PLAYER_DNB)
-            printf("%-4d %-12s %-6d %-6d\n",
-                   team[i].id, status,
-                   team[i].runs_scored, team[i].balls_faced);
+        player *p = &team[i];
+
+        if (p->played == PLAYER_DNB)
+        {
+            printf(COL_DIM "  %-16s %-10s %5s %6s %7s\n" COL_RESET,
+                   p->name, "DNB", "-", "-", "-");
+            continue;
+        }
+
+        const char *status_col = (p->played == PLAYER_OUT) ? COL_RED : COL_GREEN;
+        const char *status_str = (p->played == PLAYER_OUT) ? "out" : "not out";
+
+        double sr = (p->balls_faced > 0)
+                    ? (double)p->runs_scored * 100.0 / p->balls_faced
+                    : 0.0;
+
+        printf("  " COL_WHITE "%-16s" COL_RESET " %s%-10s" COL_RESET
+               " %5d %6d %6.1f\n",
+               p->name, status_col, status_str,
+               p->runs_scored, p->balls_faced, sr);
     }
 }
 
 void print_bowling_card(player bowlers[], int n)
 {
-    printf("%-4s %-6s %-8s %-8s\n", "ID", "Overs", "Runs", "Wickets");
-    printf("------------------------------------\n");
+    printf(COL_BOLD COL_YELLOW);
+    printf("  %-16s %6s %6s %8s %7s\n",
+           "Bowler", "Overs", "Runs", "Wickets", "Econ");
+    printf(COL_RESET COL_DIM);
+    printf("  %-16s %6s %6s %8s %7s\n",
+           "----------------", "------", "------", "--------", "-------");
+    printf(COL_RESET);
+
     for (int i = 0; i < n; i++)
     {
-        if (bowlers[i].overs_bowled > 0)
-            printf("%-4d %-6.1f %-8d %-8d\n",
-                   bowlers[i].id,
-                   bowlers[i].overs_bowled / 6.0,
-                   bowlers[i].runs_conceded,
-                   bowlers[i].wickets_taken);
+        player *p = &bowlers[i];
+        if (p->overs_bowled == 0) continue;   /* didn't bowl */
+
+        char ov_str[16];
+        fmt_overs(p->overs_bowled, ov_str, sizeof(ov_str));
+
+        /* economy = runs / overs_as_decimal */
+        double overs_dec = p->overs_bowled / 6.0;
+        double econ = (overs_dec > 0) ? (double)p->runs_conceded / overs_dec : 0.0;
+
+        const char *wkt_col = (p->wickets_taken >= 3) ? COL_GREEN :
+                              (p->wickets_taken >= 1) ? COL_YELLOW : COL_RESET;
+
+        printf("  " COL_WHITE "%-16s" COL_RESET " %6s %6d %s%8d" COL_RESET " %7.2f\n",
+               p->name, ov_str,
+               p->runs_conceded,
+               wkt_col, p->wickets_taken,
+               econ);
     }
 }
