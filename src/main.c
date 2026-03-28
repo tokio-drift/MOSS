@@ -15,7 +15,7 @@
 #include "../include/fielder.h"
 #include "../include/players.h"
 #include "../include/gantt.h"
-
+#include "../include/runout.h"
 player team1[TEAM_SIZE];
 player team2[TEAM_SIZE];
 
@@ -440,6 +440,7 @@ int main(int argc, char *argv[])
     init_scheduler();
     init_fielders();
     gantt_init();
+    init_runout();
 
     load_team(team1, team_registry[team1_idx].squad, TEAM_SIZE);
     load_team(team2, team_registry[team2_idx].squad, TEAM_SIZE);
