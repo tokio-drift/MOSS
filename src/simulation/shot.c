@@ -89,7 +89,6 @@ shot_result play_shot(player *batsman, player *bowler, delivery_event ball)
 
     if (wicket_prob <  4) wicket_prob  = 4;
     if (wicket_prob > 45) wicket_prob  = 45;
-
     int rnd = rand() % 100;
     if (rnd < wicket_prob)
     {

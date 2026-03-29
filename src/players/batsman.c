@@ -96,6 +96,7 @@ void *batsman_thread(void *arg)
             }
             else
             {
+                catch_taken       = false;
                 r.wicket = false;
                 r.runs   = rand() % 3;
             }
@@ -108,6 +109,10 @@ void *batsman_thread(void *arg)
         {
             pthread_mutex_unlock(&score_mutex);
             break;
+        }
+
+        if (batsman->played == PLAYER_DNB) {
+            batsman->played = PLAYER_BATTING;
         }
 
         update_batsman_stats(batsman, r.runs, true);

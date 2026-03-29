@@ -143,34 +143,36 @@ void init_batting_order()
 
 static int select_next_batsman_locked(player team[], int n, scoreboard *m)
 {
-    int best = -1, best_score = INT_MIN;
-    int intensity = compute_intensity(m);
+    // int best = -1, best_score = INT_MIN;
+    // int intensity = compute_intensity(m);
 
-    for (int i = next_batsman_id; i < n; i++)
-    {
-        if (team[i].played == PLAYER_OUT) continue;
-        int score = team[i].batting_skill * 2;
-        if (intensity > 2  && team[i].batsmen_type == BTYPE_MIDDLE) score += 15;
-        if (intensity < 0  && team[i].batsmen_type == BTYPE_TOP)    score += 10;
-        if (m->wickets < 2 && team[i].batsmen_type == BTYPE_TOP)    score += 10;
-        if (m->wickets >= 7 && team[i].batsmen_type == BTYPE_TAIL)  score += 5;
-        score += rand() % 3;
-        if (score > best_score) { best_score = score; best = i; }
-    }
-    return best;
+    // for (int i = next_batsman_id; i < n; i++)
+    // {
+    //     if (team[i].played == PLAYER_OUT) continue;
+    //     int score = team[i].batting_skill * 2;
+    //     if (intensity > 2  && team[i].batsmen_type == BTYPE_MIDDLE) score += 15;
+    //     if (intensity < 0  && team[i].batsmen_type == BTYPE_TOP)    score += 10;
+    //     if (m->wickets < 2 && team[i].batsmen_type == BTYPE_TOP)    score += 10;
+    //     if (m->wickets >= 7 && team[i].batsmen_type == BTYPE_TAIL)  score += 5;
+    //     score += rand() % 3;
+    //     if (score > best_score) { best_score = score; best = i; }
+    // }
+    return next_batsman_id;
 }
 
 int on_wicket()
 {
     pthread_mutex_lock(&scheduler_mutex);
     int next = select_next_batsman_locked(batting_team, TEAM_SIZE, &match);
-    if (next == -1)
+
+    if (next == -1 || next>=TEAM_SIZE)
     {
         pthread_mutex_unlock(&scheduler_mutex);
         return -1;
     }
     striker_id      = next;
     next_batsman_id = next + 1;
+    // if(next_batsman_id==11) next_batsman_id=-1;
     pthread_mutex_unlock(&scheduler_mutex);
     return next;
 }

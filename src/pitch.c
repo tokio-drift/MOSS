@@ -70,7 +70,8 @@ delivery_event pitch_read()
         return ball;
     }
 
-    int read_index = (pitch_index - 1 + PITCH_SIZE) % PITCH_SIZE;
+    int read_index = (pitch_index - 1 );
+    if(read_index<0) read_index =PITCH_SIZE-1;
     ball          = pitch_buffer[read_index];
     ball_ready    = false;
     ball_consumed = true;
