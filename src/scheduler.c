@@ -139,6 +139,8 @@ void init_batting_order()
     striker_id      = 0;
     non_striker_id  = 1;
     next_batsman_id = 2;
+    batting_team[0].played = PLAYER_BATTING;
+    batting_team[1].played = PLAYER_BATTING;
 }
 
 static int select_next_batsman_locked(player team[], int n, scoreboard *m)
@@ -172,6 +174,7 @@ int on_wicket()
     }
     striker_id      = next;
     next_batsman_id = next + 1;
+    if (batting_team[next].played == PLAYER_DNB) batting_team[next].played = PLAYER_BATTING;
     // if(next_batsman_id==11) next_batsman_id=-1;
     pthread_mutex_unlock(&scheduler_mutex);
     return next;

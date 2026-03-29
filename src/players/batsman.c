@@ -91,6 +91,7 @@ void *batsman_thread(void *arg)
             {
                 catch_taken       = true;
                 r.wicket          = true;
+                r.runs = 0;
                 caught            = 1;
                 caught_by_keeper  = f->is_keeper;
             }
