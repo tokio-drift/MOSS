@@ -48,7 +48,6 @@ void *batsman_thread(void *arg)
         player *batsman = &batting_team[sid];
         player *bowler  = &bowling_team[bowler_i];
 
-        /* ---- Extra deliveries (wide / no-ball) ---- */
         if (ball.extra != NO_EXTRA)
         {
             pthread_mutex_lock(&score_mutex);
@@ -71,8 +70,6 @@ void *batsman_thread(void *arg)
                          match.overs, match.balls, bat_runs, false, match.innings);
             continue;
         }
-
-        /* ---- Normal delivery ---- */
         shot_result r  = play_shot(batsman, bowler, ball);
         int fielder_id = -1;
         int caught     = 0;
@@ -105,8 +102,6 @@ void *batsman_thread(void *arg)
             }
             pthread_mutex_unlock(&fielder_mutex);
         }
-
-        /* ---- Update scoreboard (score_mutex held) ---- */
         pthread_mutex_lock(&score_mutex);
 
         if (is_match_over())
@@ -133,7 +128,7 @@ void *batsman_thread(void *arg)
 
         next_ball(true);
         pthread_mutex_unlock(&score_mutex);
-        if (!r.wicket && r.runs > 0)
+        if (!r.wicket && r.runs > 0 && r.runs != 4 && r.runs != 6)
         {
             pthread_mutex_lock(&scheduler_mutex);
             int non_sid = non_striker_id;
@@ -142,14 +137,16 @@ void *batsman_thread(void *arg)
             int victim = attempt_run(sid, non_sid, r.runs);
             if (victim >= 0)
             {
-                if (victim == sid)
-                    on_wicket();
-                r.wicket = true;          /* for gantt */
-                r.runout = true;          /* for log   */
+                r.wicket = true;  
+                r.runout = true;   
                 strncpy(r.runout_name,
                         batting_team[victim].name,
                         sizeof(r.runout_name) - 1);
                 r.runout_name[sizeof(r.runout_name) - 1] = '\0';
+
+                if (victim != sid)
+                    swap_strike();  
+                on_wicket();
             }
         }
 
