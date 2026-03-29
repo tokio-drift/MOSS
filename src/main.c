@@ -316,19 +316,52 @@ static void play_innings(int innings_num, const char *sched_name)
     get_score(&runs, &wickets, &overs, &balls);
     printf("\n\033[1mInnings %d:  %d/%d  (%d.%d overs)\033[0m\n",
            innings_num + 1, runs, wickets, overs, balls);
-               int final_striker = get_striker();
-    int final_non_striker = get_non_striker();
-    
-    for (int i = 0; i < TEAM_SIZE; i++)
+                    if (wickets >= 10)
     {
-        // If batsman was in the middle but not striker/non-striker, mark OUT
-        if ((batting_team[i].played == PLAYER_BATTING || batting_team[i].played == PLAYER_DNB) &&
-            i != final_striker && i != final_non_striker)
+        // 10 wickets fallen: keep 1 as "not out", mark rest as OUT
+        int batting_count = 0;
+        for (int i = 0; i < TEAM_SIZE; i++)
         {
-            // They came to bat but never settled, so mark OUT
-            if (batting_team[i].played != PLAYER_OUT)
+            if (batting_team[i].played == PLAYER_BATTING)
+                batting_count++;
+        }
+        
+        if (batting_count > 1)
+        {
+            int found = 0;
+            for (int i = 0; i < TEAM_SIZE; i++)
             {
-                batting_team[i].played = PLAYER_OUT;
+                if (batting_team[i].played == PLAYER_BATTING)
+                {
+                    if (found >= 1)  // Keep only 1 as not out
+                        batting_team[i].played = PLAYER_OUT;
+                    found++;
+                }
+            }
+        }
+    }
+    else
+    {
+        // Fewer than 10 wickets - can have up to 2 "not out" (striker + non-striker)
+        int batting_count = 0;
+        for (int i = 0; i < TEAM_SIZE; i++)
+        {
+            if (batting_team[i].played == PLAYER_BATTING)
+                batting_count++;
+        }
+        
+        // Mark extras as OUT (keep only first 2 BATTING batsmen as not out)
+        if (batting_count > 2)
+        {
+            int found = 0;
+            for (int i = 0; i < TEAM_SIZE; i++)
+            {
+                if (batting_team[i].played == PLAYER_BATTING)
+                {
+                    if (found >= 2)
+                        batting_team[i].played = PLAYER_OUT;
+                    found++;
+                }
             }
         }
     }
