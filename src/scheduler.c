@@ -44,7 +44,7 @@ int compute_intensity(scoreboard *m)
 static int schedule_rr_locked(player team[], int n)
 {
     int start = current_bowler_id;
-    for (int i = 1; i <= n; i++)
+    for (int i = 1; i < n; i++)
     {
         int idx = (start + i) % n;
         if (can_bowl(&team[idx]))

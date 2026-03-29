@@ -120,8 +120,10 @@ void *batsman_thread(void *arg)
         update_bowler_runs(bowler, r.runs);
         match.score += r.runs;
 
+        bool wicket_for_gantt = false;
         if (r.wicket && match.wickets < 10)
         {
+            wicket_for_gantt = true;
             mark_batsman_out(batsman);
             match.wickets++;
             update_bowler_wicket(bowler);
@@ -139,7 +141,7 @@ void *batsman_thread(void *arg)
             swap_strike();
 
         gantt_record(&ball, bowler, batsman, consumed_ns,
-                     match.overs, match.balls, r.runs, r.wicket, match.innings);
+                     match.overs, match.balls, r.runs, wicket_for_gantt, match.innings);
 
         log_event(log_fp, bowler, batsman, ball, r, fielder_id, caught, caught_by_keeper);
         fflush(log_fp);
