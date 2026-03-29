@@ -1,6 +1,6 @@
 # MOSS: Multithreaded Over-Scheduled Simulation with Synchronization
 
-**MOSS** is a high-performance **T20 Cricket Simulator** in C using POSIX threads. It maps cricket entities to OS concepts: players are threads, the pitch is a critical section (shared buffer), runs are atomic operations, and match flow uses custom scheduling algorithms (Round-Robin, Priority, SJF). This project demonstrates multithreading, synchronization, producer-consumer patterns, and scheduling policies for the Operating Systems curriculum.
+**MOSS** is a high-performance **T20 Cricket Simulator** in C using POSIX threads. It maps cricket entities to OS concepts: players are threads, the pitch is a critical section (shared buffer), runs are atomic operations, and match flow uses custom scheduling algorithms (Round-Robin, Priority, SJF).
 
 ---
 
