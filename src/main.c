@@ -15,6 +15,7 @@
 #include "../include/fielder.h"
 #include "../include/players.h"
 #include "../include/gantt.h"
+#include "../include/runout.h"
 
 player team1[TEAM_SIZE];
 player team2[TEAM_SIZE];
@@ -24,9 +25,6 @@ player *bowling_team;
 
 volatile int innings_over = 0;
 
-/* -----------------------------------------------------------------------
- *  Player definitions
- * --------------------------------------------------------------------- */
 typedef struct
 {
     const char *name;
@@ -38,7 +36,6 @@ typedef struct
     int  battype;
 } player_def;
 
-/* ---- India ---- */
 static const player_def india_squad[TEAM_SIZE] = {
     { "R. Pant",      true,  -1, 88, 78, false, BTYPE_TOP    },
     { "V. Kohli",     false,  25, 72, 95, false, BTYPE_TOP    },
@@ -53,7 +50,6 @@ static const player_def india_squad[TEAM_SIZE] = {
     { "Y. Chahal",    false,  85, 58, 18, true,  BTYPE_TAIL   },
 };
 
-/* ---- Australia ---- */
 static const player_def aus_squad[TEAM_SIZE] = {
     { "M. Wade",       true,  -1, 85, 80, false, BTYPE_TOP    },
     { "D. Warner",     false,  15, 72, 88, false, BTYPE_TOP    },
@@ -68,7 +64,6 @@ static const player_def aus_squad[TEAM_SIZE] = {
     { "A. Zampa",      false,  83, 58, 18, true,  BTYPE_TAIL   },
 };
 
-/* ---- Sri Lanka ---- */
 static const player_def sl_squad[TEAM_SIZE] = {
     { "K. Sangakkara", true,  -1, 88, 92, false, BTYPE_TOP    },
     { "T. Dilshan",    false,  55, 72, 85, false, BTYPE_TOP    },
@@ -83,7 +78,6 @@ static const player_def sl_squad[TEAM_SIZE] = {
     { "A. Dananjaya",  false,  82, 58, 14, true,  BTYPE_TAIL   },
 };
 
-/* ---- Pakistan ---- */
 static const player_def pak_squad[TEAM_SIZE] = {
     { "M. Rizwan",    true,  -1, 85, 84, false, BTYPE_TOP    },
     { "Babar Azam",   false,  18, 72, 96, false, BTYPE_TOP    },
@@ -98,7 +92,6 @@ static const player_def pak_squad[TEAM_SIZE] = {
     { "H. Rauf",      false,  88, 58, 12, false, BTYPE_TAIL   },
 };
 
-/* ---- England ---- */
 static const player_def eng_squad[TEAM_SIZE] = {
     { "J. Buttler",   true,  -1, 88, 90, false, BTYPE_TOP    },
     { "J. Roy",       false,  18, 70, 85, false, BTYPE_TOP    },
@@ -113,7 +106,6 @@ static const player_def eng_squad[TEAM_SIZE] = {
     { "A. Rashid",    false,  86, 62, 20, true,  BTYPE_TAIL   },
 };
 
-/* ---- New Zealand ---- */
 static const player_def nz_squad[TEAM_SIZE] = {
     { "T. Latham",     true,  -1, 82, 82, false, BTYPE_TOP    },
     { "M. Guptill",    false,  18, 70, 86, false, BTYPE_TOP    },
@@ -128,7 +120,6 @@ static const player_def nz_squad[TEAM_SIZE] = {
     { "I. Sodhi",      false,  82, 58, 14, true,  BTYPE_TAIL   },
 };
 
-/* ---- West Indies ---- */
 static const player_def wi_squad[TEAM_SIZE] = {
     { "N. Pooran",    true,  -1, 85, 84, false, BTYPE_TOP    },
     { "C. Gayle",     false,  55, 68, 92, false, BTYPE_TOP    },
@@ -143,7 +134,6 @@ static const player_def wi_squad[TEAM_SIZE] = {
     { "H. Walsh Jr.", false,  80, 58, 12, true,  BTYPE_TAIL   },
 };
 
-/* ---- South Africa ---- */
 static const player_def sa_squad[TEAM_SIZE] = {
     { "Q. de Kock",    true,  -1, 85, 88, false, BTYPE_TOP    },
     { "H. Amla",       false,  15, 70, 90, false, BTYPE_TOP    },
@@ -158,7 +148,6 @@ static const player_def sa_squad[TEAM_SIZE] = {
     { "T. Shamsi",     false,  86, 60, 12, true,  BTYPE_TAIL   },
 };
 
-/* ---- Afghanistan ---- */
 static const player_def afg_squad[TEAM_SIZE] = {
     { "M. Shahzad",   true,  -1, 82, 78, false, BTYPE_TOP    },
     { "H. Zazai",     false,  15, 68, 82, false, BTYPE_TOP    },
@@ -173,9 +162,6 @@ static const player_def afg_squad[TEAM_SIZE] = {
     { "Naveen-ul-H.", false,  83, 58, 10, false, BTYPE_TAIL   },
 };
 
-/* -----------------------------------------------------------------------
- *  Team registry
- * --------------------------------------------------------------------- */
 #define NUM_TEAMS 9
 
 typedef struct
@@ -219,9 +205,6 @@ static void load_team(player team[], const player_def defs[], int n)
     }
 }
 
-/* -----------------------------------------------------------------------
- *  Team selection (interactive)
- * --------------------------------------------------------------------- */
 static int pick_team(const char *prompt, int exclude_idx)
 {
     printf("\n\033[1m\033[36m  %s\033[0m\n", prompt);
@@ -244,9 +227,6 @@ static int pick_team(const char *prompt, int exclude_idx)
     return choice - 1;
 }
 
-/* -----------------------------------------------------------------------
- *  Per-innings play
- * --------------------------------------------------------------------- */
 const char *team1_name;
 const char *team2_name;
 
@@ -255,6 +235,7 @@ static void play_innings(int innings_num, const char *sched_name)
     innings_over = 0;
     reset_pitch();
     init_batting_order();
+    init_runout();
     select_next_bowler(bowling_team, TEAM_SIZE);
 
     const char *bat_name  = (batting_team == team1) ? team1_name : team2_name;
@@ -316,20 +297,63 @@ static void play_innings(int innings_num, const char *sched_name)
     get_score(&runs, &wickets, &overs, &balls);
     printf("\n\033[1mInnings %d:  %d/%d  (%d.%d overs)\033[0m\n",
            innings_num + 1, runs, wickets, overs, balls);
+                    if (wickets >= 10)
+    {
 
-    /* Batting card */
+        int batting_count = 0;
+        for (int i = 0; i < TEAM_SIZE; i++)
+        {
+            if (batting_team[i].played == PLAYER_BATTING)
+                batting_count++;
+        }
+
+        if (batting_count > 1)
+        {
+            int found = 0;
+            for (int i = 0; i < TEAM_SIZE; i++)
+            {
+                if (batting_team[i].played == PLAYER_BATTING)
+                {
+                    if (found >= 1)
+                        batting_team[i].played = PLAYER_OUT;
+                    found++;
+                }
+            }
+        }
+    }
+    else
+    {
+
+        int batting_count = 0;
+        for (int i = 0; i < TEAM_SIZE; i++)
+        {
+            if (batting_team[i].played == PLAYER_BATTING)
+                batting_count++;
+        }
+
+        if (batting_count > 2)
+        {
+            int found = 0;
+            for (int i = 0; i < TEAM_SIZE; i++)
+            {
+                if (batting_team[i].played == PLAYER_BATTING)
+                {
+                    if (found >= 2)
+                        batting_team[i].played = PLAYER_OUT;
+                    found++;
+                }
+            }
+        }
+    }
+
     printf("\n\033[1m\033[36m  ── BATTING  (%s) ──────────────────────────────────────────────\033[0m\n", bat_name);
     print_batting_card(batting_team, TEAM_SIZE);
 
-    /* Bowling card */
     printf("\n\033[1m\033[33m  ── BOWLING  (%s) ──────────────────────────────────────────────\033[0m\n", bowl_name);
     print_bowling_card(bowling_team, TEAM_SIZE);
     printf("\n");
 }
 
-/* -----------------------------------------------------------------------
- *  Arg parsing
- * --------------------------------------------------------------------- */
 static void print_usage(const char *prog)
 {
     fprintf(stderr,
@@ -363,9 +387,6 @@ static int find_team_code(const char *arg)
     return -1;
 }
 
-/* -----------------------------------------------------------------------
- *  main
- * --------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
     int sched1 = -1, sched2 = -1;
@@ -375,7 +396,6 @@ int main(int argc, char *argv[])
     {
         char *a = argv[i];
 
-        /* Try team first — exact match wins over sched heuristic */
         int ti = find_team_code(a);
         if (ti >= 0)
         {
@@ -384,7 +404,6 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        /* scheduling flag: -X or -XY where X,Y in {R,P,S} */
         if (a[0] == '-' && (a[1]=='R' || a[1]=='P' || a[1]=='S')
             && (a[2]=='\0' || ((a[2]=='R'||a[2]=='P'||a[2]=='S') && a[3]=='\0')))
         {
@@ -404,7 +423,6 @@ int main(int argc, char *argv[])
 
     static const char *sched_label[] = { "Round-Robin", "Priority", "SJF" };
 
-    /* ---- Bright yellow MOSS banner ---- */
     printf("\033[1m\033[93m");
     printf(" __       __   ______    ______    ______  \n");
     printf("|  \\     /  \\ /      \\  /      \\  /      \\ \n");
@@ -418,7 +436,6 @@ int main(int argc, char *argv[])
     printf("\033[0m");
     printf("\033[2m  Multithreaded Over-Scheduled Simulation with Synchronization\033[0m\n\n");
 
-    /* team selection */
     if (team1_idx < 0) team1_idx = pick_team("Select Team 1 (bats first):", -1);
     if (team2_idx < 0) team2_idx = pick_team("Select Team 2 (bats second):", team1_idx);
     if (team1_idx == team2_idx) { fprintf(stderr,"Teams must be different.\n"); return 1; }
@@ -439,12 +456,12 @@ int main(int argc, char *argv[])
     init_scoreboard();
     init_scheduler();
     init_fielders();
+    init_runout();
     gantt_init();
 
     load_team(team1, team_registry[team1_idx].squad, TEAM_SIZE);
     load_team(team2, team_registry[team2_idx].squad, TEAM_SIZE);
 
-    /* ---- Innings 1 ---- */
     set_scheduling_policy(sched1);
     batting_team = team1;
     bowling_team = team2;
@@ -454,7 +471,6 @@ int main(int argc, char *argv[])
     int inn1_runs, inn1_wkts, inn1_overs, inn1_balls;
     get_score(&inn1_runs, &inn1_wkts, &inn1_overs, &inn1_balls);
 
-    /* ---- Innings 2 ---- */
     set_scheduling_policy(sched2);
     set_target(inn1_runs + 1);
     reset_for_second_innings();
@@ -467,7 +483,6 @@ int main(int argc, char *argv[])
     int inn2_runs, inn2_wkts, inn2_overs, inn2_balls;
     get_score(&inn2_runs, &inn2_wkts, &inn2_overs, &inn2_balls);
 
-    /* ---- Match result ---- */
     printf("\n\033[1m\033[36m  ══════════════════════════════════════\033[0m\n");
     printf("\033[1m              MATCH RESULT\033[0m\n");
     printf("\033[1m\033[36m  ══════════════════════════════════════\033[0m\n");
@@ -493,19 +508,19 @@ int main(int argc, char *argv[])
 
     printf("\033[1m\033[36m  ══════════════════════════════════════\033[0m\n");
 
-    /* gantt sched label e.g. "R/P" */
     char gantt_sched[8];
     char c1 = (sched1==SCHED_RoR)?'R':(sched1==SCHED_PRIORITY)?'P':'S';
     char c2 = (sched2==SCHED_RoR)?'R':(sched2==SCHED_PRIORITY)?'P':'S';
     snprintf(gantt_sched, sizeof(gantt_sched), "%c/%c", c1, c2);
 
-    /* build match title for gantt */
     char mtitle[64];
     snprintf(mtitle, sizeof(mtitle), "%s vs %s", team1_name, team2_name);
 
     gantt_print(gantt_sched, mtitle,
                 inn1_runs, inn1_wkts,
                 inn2_runs, inn2_wkts);
+
+    destroy_runout();
 
     printf("\033[0m\n\n");
     printf("\033[2m To view the logs, run: nano ./logs/log.txt\033[0m\n");

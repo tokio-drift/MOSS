@@ -44,7 +44,7 @@ int compute_intensity(scoreboard *m)
 static int schedule_rr_locked(player team[], int n)
 {
     int start = current_bowler_id;
-    for (int i = 1; i <= n; i++)
+    for (int i = 1; i < n; i++)
     {
         int idx = (start + i) % n;
         if (can_bowl(&team[idx]))
@@ -60,7 +60,7 @@ static int schedule_sjf_locked(player team[], int n)
 {
     int min_balls = INT_MAX, best = -1;
     for (int i = 0; i < n; i++)
-        if (can_bowl(&team[i]) && team[i].overs_bowled < min_balls)
+        if (can_bowl(&team[i]) && i != current_bowler_id && team[i].overs_bowled < min_balls)
         {
             min_balls = team[i].overs_bowled;
             best = i;
@@ -76,7 +76,7 @@ static int schedule_priority_locked(player team[], int n)
 
     for (int i = 0; i < n; i++)
     {
-        if (!can_bowl(&team[i])) continue;
+        if (!can_bowl(&team[i]) || i == current_bowler_id) continue;
         int score = team[i].bowling_skill * 2 - team[i].overs_bowled * 3;
         if (phase == 0) score += (team[i].bowler_type == 0) ? 10 : -5;
         else if (phase == 1) score += (team[i].bowler_type == 1) ? 8 : 0;
@@ -139,38 +139,49 @@ void init_batting_order()
     striker_id      = 0;
     non_striker_id  = 1;
     next_batsman_id = 2;
+    batting_team[0].played = PLAYER_BATTING;
+    batting_team[1].played = PLAYER_BATTING;
 }
 
 static int select_next_batsman_locked(player team[], int n, scoreboard *m)
 {
-    int best = -1, best_score = INT_MIN;
-    int intensity = compute_intensity(m);
-
-    for (int i = next_batsman_id; i < n; i++)
-    {
-        if (team[i].played == PLAYER_OUT) continue;
-        int score = team[i].batting_skill * 2;
-        if (intensity > 2  && team[i].batsmen_type == BTYPE_MIDDLE) score += 15;
-        if (intensity < 0  && team[i].batsmen_type == BTYPE_TOP)    score += 10;
-        if (m->wickets < 2 && team[i].batsmen_type == BTYPE_TOP)    score += 10;
-        if (m->wickets >= 7 && team[i].batsmen_type == BTYPE_TAIL)  score += 5;
-        score += rand() % 3;
-        if (score > best_score) { best_score = score; best = i; }
-    }
-    return best;
+    (void)team; (void)n; (void)m;
+    return next_batsman_id;
 }
 
 int on_wicket()
 {
     pthread_mutex_lock(&scheduler_mutex);
     int next = select_next_batsman_locked(batting_team, TEAM_SIZE, &match);
-    if (next == -1)
+
+    if (next == -1 || next >= TEAM_SIZE)
     {
         pthread_mutex_unlock(&scheduler_mutex);
         return -1;
     }
     striker_id      = next;
     next_batsman_id = next + 1;
+    if (batting_team[next].played == PLAYER_DNB)
+        batting_team[next].played = PLAYER_BATTING;
+    pthread_mutex_unlock(&scheduler_mutex);
+    return next;
+}
+
+
+int on_wicket_nonstriker()
+{
+    pthread_mutex_lock(&scheduler_mutex);
+    int next = select_next_batsman_locked(batting_team, TEAM_SIZE, &match);
+
+    if (next == -1 || next >= TEAM_SIZE)
+    {
+        pthread_mutex_unlock(&scheduler_mutex);
+        return -1;
+    }
+    non_striker_id  = next;
+    next_batsman_id = next + 1;
+    if (batting_team[next].played == PLAYER_DNB)
+        batting_team[next].played = PLAYER_BATTING;
     pthread_mutex_unlock(&scheduler_mutex);
     return next;
 }

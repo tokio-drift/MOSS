@@ -18,6 +18,7 @@ typedef struct
     int runs;
     bool aerial;
     bool wicket;
+    bool wicket_attempt;
 } shot_result;
 
 typedef struct
@@ -28,7 +29,7 @@ typedef struct
     int balls;
     int extras;
     int target;
-    bool innings;
+    int  innings;
     int match_intensity;
 } scoreboard;
 
@@ -49,7 +50,7 @@ typedef struct
     int  bowling_skill;
     int  fielding_skill;
     int  batting_skill;
-    bool bowler_type;
+    int  bowler_type;
     int  batsmen_type;
 
     int  overs_bowled;

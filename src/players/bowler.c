@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
 #include "../../include/pitch.h"
 #include "../../include/types.h"
 #include "../../include/constants.h"
@@ -24,7 +25,6 @@ void *bowler_thread(void *arg)
 
         if (innings_over) break;
 
-        // Need to wait until batsman consumes ball
         pthread_mutex_lock(&pitch_mutex);
         while (!ball_consumed && !innings_over)
             pthread_cond_wait(&ball_consumed_cond, &pitch_mutex);
@@ -46,10 +46,10 @@ void *bowler_thread(void *arg)
         if (is_legal && legal_balls == 6)
         {
             legal_balls = 0;
-            // & Will handle strike swap and bowler selection
+
             end_over(bowling_team, TEAM_SIZE);
-            printf("  [Over %d complete] Bowler -> %d\n",
-                   match.overs, current_bowler_id);
+            printf("  [Over %d complete] Bowler -> %s\n",
+                   match.overs, bowler->name);
         }
     }
 
