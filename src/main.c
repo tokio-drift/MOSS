@@ -316,6 +316,22 @@ static void play_innings(int innings_num, const char *sched_name)
     get_score(&runs, &wickets, &overs, &balls);
     printf("\n\033[1mInnings %d:  %d/%d  (%d.%d overs)\033[0m\n",
            innings_num + 1, runs, wickets, overs, balls);
+               int final_striker = get_striker();
+    int final_non_striker = get_non_striker();
+    
+    for (int i = 0; i < TEAM_SIZE; i++)
+    {
+        // If batsman was in the middle but not striker/non-striker, mark OUT
+        if ((batting_team[i].played == PLAYER_BATTING || batting_team[i].played == PLAYER_DNB) &&
+            i != final_striker && i != final_non_striker)
+        {
+            // They came to bat but never settled, so mark OUT
+            if (batting_team[i].played != PLAYER_OUT)
+            {
+                batting_team[i].played = PLAYER_OUT;
+            }
+        }
+    }
 
     /* Batting card */
     printf("\n\033[1m\033[36m  ── BATTING  (%s) ──────────────────────────────────────────────\033[0m\n", bat_name);
