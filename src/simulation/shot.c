@@ -84,16 +84,18 @@ shot_result play_shot(player *batsman, player *bowler, delivery_event ball)
         int aerial_chance = 55 + pressure / 2;
         if (rand() % 100 < aerial_chance)
         {
-            r.wicket = false;
-            r.runs   = 0;
-            r.aerial = true;
+            r.wicket         = false;
+            r.runs           = 0;
+            r.aerial         = true;
+            r.wicket_attempt = true;
             return r;
         }
         else
         {
-            r.wicket = true;
-            r.runs   = 0;
-            r.aerial = false;
+            r.wicket         = true;
+            r.runs           = 0;
+            r.aerial         = false;
+            r.wicket_attempt = false;
             return r;
         }
     }
@@ -129,8 +131,9 @@ shot_result play_shot(player *batsman, player *bowler, delivery_event ball)
 
     int aerial_prob = 15 + pressure / 2 + intensity / 4;
     if (aerial_prob > 40) aerial_prob = 40;
-    r.aerial = (rand() % 100 < aerial_prob);
-    r.wicket = false;
+    r.aerial         = (rand() % 100 < aerial_prob);
+    r.wicket         = false;
+    r.wicket_attempt = false;
     return r;
 }
 

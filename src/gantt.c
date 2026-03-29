@@ -42,9 +42,6 @@ void gantt_record(delivery_event *ball, player *bowler, player *batsman,
     e->innings       = innings;
 }
 
-/* -----------------------------------------------------------------------
- * Per-bowler accumulated thread time (ns).
- * ---------------------------------------------------------------------- */
 static long long bowler_time_ns[TEAM_SIZE * 2];
 
 static void compute_bowler_times(int innings)
@@ -60,11 +57,9 @@ static void compute_bowler_times(int innings)
     }
 }
 
-// col values: 0=empty  1=top  2=middle  3=tail  4=wicket
-// BAR_W reduced by 4 to make room for the thread-time column
 #define BAR_W    64
 #define LABEL_W  14
-#define TIME_W   10   /* " (xx.xms)" */
+#define TIME_W   10
 
 static void render_row(int bowler_id, int innings,
                        long long t_min, long long t_range,
@@ -91,13 +86,14 @@ static void render_row(int bowler_id, int innings,
 
         for (int c = left; c <= right; c++)
         {
+
+            if (bar[c] == 'X') continue;
             bar[c] = fill;
             col[c] = c_id;
         }
     }
 }
 
-// print the bar to terminal with ANSI color; spaces are printed raw (no escape)
 static void print_colored_bar(const char *bar, const char *col, FILE *f)
 {
     int in_color = 0;
@@ -118,7 +114,7 @@ static void print_colored_bar(const char *bar, const char *col, FILE *f)
                 case 3:  esc = ANSI_TAIL;   break;
                 default: esc = ANSI_WICKET; break;
             }
-            // only emit escape on color change
+
             if (!in_color || col[i] != col[i > 0 ? i - 1 : 0])
                 fprintf(f, "%s", esc);
             in_color = 1;
@@ -180,7 +176,6 @@ static void middle_stats(int innings, int *cnt_out, double *avg_ms_out)
     *avg_ms_out = cnt > 0 ? (double)total / cnt / 1e6 : 0.0;
 }
 
-// build the axis line with 0.1ms (100µs) granularity: "0.0ms  N.Nms  ..."
 static void build_axis(long long t_range_ns, char out[BAR_W + 1])
 {
     memset(out, ' ', BAR_W);
@@ -190,7 +185,7 @@ static void build_axis(long long t_range_ns, char out[BAR_W + 1])
     for (int t = 0; t < n_ticks; t++)
     {
         int pos = t * (BAR_W - 1) / (n_ticks - 1);
-        /* value in units of 0.1ms (100µs) */
+
         double tick_ms = (double)t_range_ns * t / (n_ticks - 1) / 1e6;
         char label[20];
         snprintf(label, sizeof(label), "%.1fms", tick_ms);
@@ -223,7 +218,6 @@ static void print_innings_block(int innings, long long t_min, long long t_range,
             ANSI_RESET, innings + 1, bat_team);
     fprintf(txt, "\n  Innings %d  |  Batting: %s\n", innings + 1, bat_team);
 
-    // axis — pass raw ns range
     char axis[BAR_W + 1];
     build_axis(t_range, axis);
     fprintf(term, "  %-*s %-*s|%s\n", LABEL_W, "Bowler", TIME_W, " (thread)", axis);
@@ -263,12 +257,11 @@ static void print_innings_block(int innings, long long t_min, long long t_range,
     fprintf(txt,  "  Middle order: %d balls, avg pitch-hold %.3f ms\n", mc, mavg);
 }
 
-// total width of chart: 2 + LABEL_W + 1 + BAR_W = 2 + 14 + 1 + 68 = 85
 #define HDR_W 85
 
 static void print_hdr_line(FILE *f, const char *left, const char *mid)
 {
-    // plain ASCII box — no UTF-8
+
     fprintf(f, "  +");
     for (int i = 0; i < HDR_W - 4; i++) fputc('-', f);
     fprintf(f, "+\n");
@@ -295,7 +288,6 @@ void gantt_print(const char *sched_name,
     fprintf(term, "  +-------------------------------------------------------------------------------+\n");
     fprintf(term, ANSI_RESET);
 
-    // --- txt header ---
     time_t now = time(NULL);
     char tbuf[32];
     strftime(tbuf, sizeof(tbuf), "%Y-%m-%d %H:%M:%S", localtime(&now));
@@ -304,7 +296,6 @@ void gantt_print(const char *sched_name,
     fprintf(txt, "  |  GANTT  |  Scheduling: %-6s  |  %-24s  |  %s  |\n", sched_name, match_title, tbuf);
     fprintf(txt, "  +-------------------------------------------------------------------------------+\n");
 
-    // legend
     fprintf(term, "\n  Legend: "
             ANSI_TOP    "# Top " ANSI_RESET
             ANSI_MIDDLE "# Mid " ANSI_RESET
@@ -312,7 +303,6 @@ void gantt_print(const char *sched_name,
             ANSI_WICKET "X Wicket" ANSI_RESET "\n");
     fprintf(txt,  "\n  Legend: # Top  # Mid  # Tail  X Wicket\n");
 
-    /* parse "Team1 vs Team2" from match_title for innings labels */
     char t1buf[64], t2buf[64];
     strncpy(t1buf, match_title, sizeof(t1buf)-1); t1buf[sizeof(t1buf)-1]='\0';
     strncpy(t2buf, "???", sizeof(t2buf)-1);

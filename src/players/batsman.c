@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
+#include <sched.h>
+#include <pthread.h>
 
 #include "../../include/pitch.h"
 #include "../../include/types.h"
@@ -82,34 +84,42 @@ void *batsman_thread(void *arg)
 
         if (r.aerial)
         {
-            bool edge_to_keeper = (!r.wicket && rand() % 100 < 20) ||
-                                  ( r.wicket && rand() % 100 < 35);
-            fielder_id = edge_to_keeper ? 0
-                                        : select_fielder(bowling_team, TEAM_SIZE);
-
-            notify_fielder(fielder_id, r.aerial);
-
-            pthread_mutex_lock(&fielder_mutex);
-            player *f = &bowling_team[fielder_id];
-            if (!catch_taken && attempt_catch(f, r.aerial))
+            if (r.wicket_attempt)
             {
-                catch_taken      = true;
-                r.wicket         = true;
-                r.runs           = 0;
-                caught           = 1;
-                caught_by_keeper = f->is_keeper;
+                bool edge_to_keeper = (rand() % 100 < 35);
+                fielder_id = edge_to_keeper ? 0
+                                            : select_fielder(bowling_team, TEAM_SIZE);
+
+                notify_fielder(fielder_id, r.aerial);
+
+                pthread_mutex_lock(&fielder_mutex);
+                player *f = &bowling_team[fielder_id];
+                if (!catch_taken && attempt_catch(f, r.aerial))
+                {
+                    catch_taken      = true;
+                    r.wicket         = true;
+                    r.runs           = 0;
+                    caught           = 1;
+                    caught_by_keeper = f->is_keeper;
+                }
+                else
+                {
+                    catch_taken = false;
+                    r.wicket    = false;
+                    r.runs      = rand() % 3;
+                }
+                pthread_mutex_unlock(&fielder_mutex);
             }
             else
             {
-                catch_taken = false;
+                fielder_id  = select_fielder(bowling_team, TEAM_SIZE);
                 r.wicket    = false;
-                r.runs      = rand() % 3;
+                r.aerial    = false;
             }
-            pthread_mutex_unlock(&fielder_mutex);
         }
         bool runout         = false;
         bool runout_striker = false;
-        int  actual_runs    = r.runs;  
+        int  actual_runs    = r.runs;
 
         if (!r.wicket && !r.aerial && r.runs >= 1 && r.runs <= 3)
         {
@@ -119,7 +129,7 @@ void *batsman_thread(void *arg)
             {
                 runout     = true;
                 fielder_id = select_fielder(bowling_team, TEAM_SIZE);
-              
+
             }
         }
 
@@ -128,6 +138,10 @@ void *batsman_thread(void *arg)
         if (is_match_over())
         {
             pthread_mutex_unlock(&score_mutex);
+
+            gantt_record(&ball, bowler, batsman, consumed_ns,
+                         match.overs, match.balls,
+                         r.runs, r.wicket || runout, match.innings);
             break;
         }
 
@@ -149,7 +163,7 @@ void *batsman_thread(void *arg)
             wicket_for_gantt = true;
             mark_batsman_out(batsman);
             match.wickets++;
-            update_bowler_wicket(bowler);  
+            update_bowler_wicket(bowler);
             on_wicket();
         }
 
@@ -157,19 +171,18 @@ void *batsman_thread(void *arg)
         {
             wicket_for_gantt = true;
             match.wickets++;
-      
 
             if (runout_striker)
             {
                 mark_batsman_out(batsman);
                 if (actual_runs % 2 == 1)
                 {
-                    swap_strike();              
-                    on_wicket_nonstriker();     
+                    swap_strike();
+                    on_wicket_nonstriker();
                 }
                 else
                 {
-                    on_wicket();           
+                    on_wicket();
                 }
             }
             else
@@ -177,12 +190,12 @@ void *batsman_thread(void *arg)
                 mark_batsman_out(nonstriker);
                 if (actual_runs % 2 == 1)
                 {
-                    swap_strike();              
-                    on_wicket();              
+                    swap_strike();
+                    on_wicket();
                 }
                 else
                 {
-                    on_wicket_nonstriker(); 
+                    on_wicket_nonstriker();
                 }
             }
         }
