@@ -162,16 +162,3 @@ Saved in: `logs/log.txt`
 - Run-outs (with victim name)
 
 ---
-
-<!-- #  Summary
-This project is a **complete OS simulation disguised as a cricket match**, demonstrating:
-
-- Thread synchronization  
-- Producer–consumer problem  
-- CPU scheduling  
-- Deadlock detection  
-- Concurrent event handling  
-
-All while producing a **realistic and detailed cricket match simulation**.
-
---- -->
