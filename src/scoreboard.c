@@ -105,9 +105,6 @@ void reset_players(player team[], int n)
     }
 }
 
-/* -----------------------------------------------------------------------
- *  Pretty scorecard helpers
- * --------------------------------------------------------------------- */
 #define COL_RESET  "\033[0m"
 #define COL_BOLD   "\033[1m"
 #define COL_CYAN   "\033[36m"
