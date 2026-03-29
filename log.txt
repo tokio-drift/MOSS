@@ -1,0 +1,163 @@
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  INNINGS 1  |  Batting: India           |  Sched: Priority
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Over  0.1 | T. Boult     | R. Pant      | Bouncer      @ 145km/h | 1 runs
+Over  0.2 | T. Boult     | V. Kohli     | Full         @ 146km/h | 2 runs
+Over  0.3 | T. Boult     | V. Kohli     | Full         @ 152km/h | 2 runs
+Over  0.4 | T. Boult     | V. Kohli     | Good Length  @ 112km/h | 1 runs  (DROPPED by Fielder 6)
+Over  0.5 | T. Boult     | R. Pant      | Bouncer      @ 157km/h | 2 runs
+Over  1.0 | T. Boult     | R. Pant      | Bouncer      @ 159km/h | 4 runs
+Over  1.1 | K. Jamieson  | V. Kohli     | Full         @ 101km/h | 0 runs  (DROPPED by Fielder 0)
+Over  1.2 | K. Jamieson  | V. Kohli     | Good Length  @ 151km/h | 6 runs
+Over  1.3 | K. Jamieson  | V. Kohli     | Good Length  @ 139km/h | 0 runs
+Over  1.4 | K. Jamieson  | V. Kohli     | Good Length  @ 153km/h | 1 runs
+Over  1.5 | K. Jamieson  | R. Pant      | Slower Ball  @ 156km/h | OUT! Caught by Fielder 10
+Over  2.0 | K. Jamieson  | R. Sharma    | Good Length  @ 117km/h | 2 runs
+Over  2.1 | M. Henry     | V. Kohli     | Slower Ball  @ 139km/h | 0 runs
+Over  2.2 | M. Henry     | V. Kohli     | Yorker       @ 150km/h | 1 runs
+Over  2.3 | M. Henry     | R. Sharma    | Good Length  @ 136km/h | 0 runs
+Over  2.4 | M. Henry     | R. Sharma    | Full         @ 108km/h | 0 runs
+Over  2.5 | M. Henry     | R. Sharma    | Bouncer      @ 115km/h | OUT! Caught by Fielder 7
+Over  3.0 | M. Henry     | S. Gill      | Slower Ball  @ 143km/h | 2 runs
+Over  3.1 | T. Boult     | V. Kohli     | Yorker       @ 128km/h | 2 runs
+Over  3.2 | T. Boult     | V. Kohli     | Bouncer      @ 158km/h | 2 runs
+Over  3.3 | T. Boult     | V. Kohli     | Good Length  @ 119km/h | 0 runs
+Over  3.4 | T. Boult     | V. Kohli     | Slower Ball  @ 147km/h | 1 runs
+Over  3.5 | T. Boult     | S. Gill      | Bouncer      @ 152km/h | 2 runs
+Over  4.0 | T. Boult     | S. Gill      | Good Length  @ 107km/h | 6 runs
+Over  4.1 | K. Jamieson  | V. Kohli     | Bouncer      @ 117km/h | 0 runs
+Over  4.2 | K. Jamieson  | V. Kohli     | Bouncer      @ 145km/h | OUT! Bowled/LBW
+Over  4.3 | K. Jamieson  | S. Iyer      | Good Length  @ 113km/h | 0 runs  (DROPPED by Fielder 2)
+Over  4.4 | K. Jamieson  | S. Iyer      | Yorker       @ 111km/h | 6 runs
+Over  4.5 | K. Jamieson  | S. Iyer      | Good Length  @ 134km/h | OUT! Caught by Fielder 10
+Over  5.0 | K. Jamieson  | H. Pandya    | Yorker       @ 138km/h | 0 runs
+Over  5.1 | M. Henry     | S. Gill      | Bouncer      @ 104km/h | 0 runs
+Over  5.2 | M. Henry     | S. Gill      | Full         @ 123km/h | 6 runs
+Over  5.3 | M. Henry     | S. Gill      | Slower Ball  @ 109km/h | 6 runs
+Over  5.4 | M. Henry     | S. Gill      | Full         @ 124km/h | 1 runs
+Over  5.5 | M. Henry     | H. Pandya    | Bouncer      @ 104km/h | 1 runs
+Over  6.0 | M. Henry     | S. Gill      | Slower Ball  @ 150km/h | 1 runs
+Over  6.1 | I. Sodhi     | S. Gill      | Googly       @ 109km/h | 2 runs
+Over  6.2 | I. Sodhi     | S. Gill      | Flighted     @  84km/h | 6 runs
+Over  6.3 | I. Sodhi     | S. Gill      | Carrom Ball  @ 115km/h | 1 runs
+Over  6.3 | I. Sodhi     | H. Pandya    | Leg Break    @  95km/h | Wide
+Over  6.4 | I. Sodhi     | H. Pandya    | Carrom Ball  @  87km/h | 0 runs
+Over  6.5 | I. Sodhi     | H. Pandya    | Off Break    @  81km/h | 6 runs
+Over  7.0 | I. Sodhi     | H. Pandya    | Leg Break    @ 113km/h | 1 runs
+Over  7.1 | M. Santner   | H. Pandya    | Flighted     @  85km/h | 4 runs
+Over  7.2 | M. Santner   | H. Pandya    | Carrom Ball  @  97km/h | 6 runs
+Over  7.3 | M. Santner   | H. Pandya    | Carrom Ball  @  91km/h | 1 runs
+Over  7.4 | M. Santner   | S. Gill      | Flighted     @  83km/h | 4 runs
+Over  7.5 | M. Santner   | S. Gill      | Flighted     @ 104km/h | 6 runs
+Over  8.0 | M. Santner   | S. Gill      | Carrom Ball  @ 114km/h | 0 runs
+Over  8.1 | I. Sodhi     | H. Pandya    | Flighted     @ 113km/h | 0 runs
+Over  8.2 | I. Sodhi     | H. Pandya    | Off Break    @  93km/h | 0 runs
+Over  8.3 | I. Sodhi     | H. Pandya    | Carrom Ball  @ 119km/h | 0 runs
+Over  8.4 | I. Sodhi     | H. Pandya    | Carrom Ball  @ 114km/h | 4 runs
+Over  8.5 | I. Sodhi     | H. Pandya    | Flighted     @  80km/h | 1 runs
+Over  9.0 | I. Sodhi     | S. Gill      | Leg Break    @  88km/h | 6 runs
+Over  9.1 | M. Santner   | H. Pandya    | Carrom Ball  @ 114km/h | 4 runs
+Over  9.2 | M. Santner   | H. Pandya    | Flighted     @  93km/h | 4 runs
+Over  9.3 | M. Santner   | H. Pandya    | Googly       @ 116km/h | 6 runs
+Over  9.4 | M. Santner   | H. Pandya    | Flighted     @ 107km/h | 0 runs
+Over  9.5 | M. Santner   | H. Pandya    | Leg Break    @  94km/h | 1 runs
+Over 10.0 | M. Santner   | S. Gill      | Googly       @  81km/h | OUT! Bowled/LBW
+Over 10.1 | T. Boult     | H. Pandya    | Slower Ball  @ 121km/h | 0 runs  (DROPPED by Fielder 0)
+Over 10.2 | T. Boult     | H. Pandya    | Bouncer      @ 126km/h | 2 runs  (DROPPED by Fielder 0)
+Over 10.2 | T. Boult     | H. Pandya    | Slower Ball  @ 160km/h | Wide
+Over 10.3 | T. Boult     | H. Pandya    | Full         @ 113km/h | 1 runs  (DROPPED by Fielder 5)
+Over 10.4 | T. Boult     | R. Jadeja    | Bouncer      @ 149km/h | 2 runs
+Over 10.5 | T. Boult     | R. Jadeja    | Full         @ 144km/h | OUT! Caught by Fielder 10
+Over 11.0 | T. Boult     | A. Patel     | Full         @ 131km/h | 1 runs
+Over 11.1 | J. Neesham   | A. Patel     | Bouncer      @ 122km/h | OUT! Bowled/LBW
+Over 11.2 | J. Neesham   | J. Bumrah    | Full         @ 137km/h | 1 runs
+Over 11.3 | J. Neesham   | H. Pandya    | Slower Ball  @ 129km/h | 0 runs
+Over 11.4 | J. Neesham   | H. Pandya    | Bouncer      @ 127km/h | 2 runs
+Over 11.5 | J. Neesham   | H. Pandya    | Bouncer      @ 157km/h | 2 runs
+Over 12.0 | J. Neesham   | H. Pandya    | Good Length  @ 143km/h | 1 runs
+Over 12.1 | I. Sodhi     | H. Pandya    | Googly       @ 119km/h | 1 runs
+Over 12.2 | I. Sodhi     | J. Bumrah    | Off Break    @ 112km/h | 2 runs
+Over 12.3 | I. Sodhi     | J. Bumrah    | Off Break    @  90km/h | 2 runs
+Over 12.4 | I. Sodhi     | J. Bumrah    | Flighted     @  91km/h | OUT! Caught by Fielder 8
+Over 12.5 | I. Sodhi     | M. Shami     | Flighted     @ 104km/h | 0 runs
+Over 13.0 | I. Sodhi     | M. Shami     | Carrom Ball  @ 120km/h | OUT! Bowled/LBW
+Over 13.1 | M. Santner   | H. Pandya    | Flighted     @ 120km/h | 0 runs
+Over 13.2 | M. Santner   | H. Pandya    | Off Break    @ 108km/h | 1 runs
+Over 13.3 | M. Santner   | Y. Chahal    | Carrom Ball  @  82km/h | OUT! Caught behind by W.Keeper
+Over 13.3 | M. Santner   | Y. Chahal    | Carrom Ball  @  97km/h | Wide
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  INNINGS 2  |  Batting: New Zealand     |  Sched: Priority
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Over  0.1 | J. Bumrah    | T. Latham    | Good Length  @ 121km/h | 1 runs
+Over  0.2 | J. Bumrah    | M. Guptill   | Bouncer      @ 121km/h | 0 runs  (DROPPED by Fielder 8)
+Over  0.3 | J. Bumrah    | M. Guptill   | Good Length  @ 101km/h | 1 runs  (DROPPED by Fielder 10)
+Over  0.3 | J. Bumrah    | T. Latham    | Full         @ 134km/h | Wide
+Over  0.4 | J. Bumrah    | T. Latham    | Full         @ 147km/h | 4 runs
+Over  0.5 | J. Bumrah    | T. Latham    | Yorker       @ 113km/h | 1 runs
+Over  1.0 | J. Bumrah    | M. Guptill   | Good Length  @ 146km/h | 4 runs
+Over  1.1 | M. Shami     | T. Latham    | Slower Ball  @ 136km/h | 2 runs
+Over  1.2 | M. Shami     | T. Latham    | Yorker       @ 148km/h | 2 runs
+Over  1.3 | M. Shami     | T. Latham    | Full         @ 140km/h | 6 runs
+Over  1.4 | M. Shami     | T. Latham    | Slower Ball  @ 130km/h | OUT! Caught behind by W.Keeper
+Over  1.5 | M. Shami     | K. Williamson | Good Length  @ 116km/h | 0 runs
+Over  2.0 | M. Shami     | K. Williamson | Full         @ 152km/h | 6 runs
+Over  2.1 | J. Bumrah    | M. Guptill   | Slower Ball  @ 124km/h | 2 runs
+Over  2.2 | J. Bumrah    | M. Guptill   | Good Length  @ 118km/h | 1 runs
+Over  2.3 | J. Bumrah    | K. Williamson | Yorker       @ 127km/h | 0 runs
+Over  2.4 | J. Bumrah    | K. Williamson | Full         @ 142km/h | 6 runs
+Over  2.5 | J. Bumrah    | K. Williamson | Slower Ball  @ 139km/h | 1 runs  (DROPPED by Fielder 4)
+Over  3.0 | J. Bumrah    | M. Guptill   | Full         @ 135km/h | 1 runs
+Over  3.1 | M. Shami     | M. Guptill   | Full         @ 157km/h | 0 runs
+Over  3.2 | M. Shami     | M. Guptill   | Full         @ 101km/h | 4 runs
+Over  3.3 | M. Shami     | M. Guptill   | Bouncer      @ 143km/h | 2 runs
+Over  3.4 | M. Shami     | M. Guptill   | Full         @ 115km/h | 4 runs
+Over  3.5 | M. Shami     | M. Guptill   | Full         @ 148km/h | OUT! Caught behind by W.Keeper
+Over  4.0 | M. Shami     | R. Taylor    | Yorker       @ 146km/h | 0 runs
+Over  4.1 | J. Bumrah    | K. Williamson | Yorker       @ 110km/h | 2 runs
+Over  4.2 | J. Bumrah    | K. Williamson | Slower Ball  @ 142km/h | OUT! Caught behind by W.Keeper
+Over  4.3 | J. Bumrah    | J. Neesham   | Slower Ball  @ 113km/h | OUT! Caught behind by W.Keeper
+Over  4.4 | J. Bumrah    | D. Conway    | Yorker       @ 105km/h | 2 runs
+Over  4.5 | J. Bumrah    | D. Conway    | Good Length  @ 159km/h | 1 runs
+Over  5.0 | J. Bumrah    | R. Taylor    | Bouncer      @ 104km/h | 4 runs
+Over  5.1 | Y. Chahal    | D. Conway    | Carrom Ball  @ 113km/h | 0 runs
+Over  5.2 | Y. Chahal    | D. Conway    | Off Break    @  93km/h | 2 runs  (DROPPED by Fielder 6)
+Over  5.3 | Y. Chahal    | D. Conway    | Carrom Ball  @ 105km/h | 0 runs
+Over  5.4 | Y. Chahal    | D. Conway    | Leg Break    @ 100km/h | OUT! Caught by Fielder 8
+Over  5.5 | Y. Chahal    | M. Santner   | Carrom Ball  @  87km/h | 2 runs
+Over  6.0 | Y. Chahal    | M. Santner   | Off Break    @ 111km/h | 0 runs
+Over  6.1 | A. Patel     | R. Taylor    | Googly       @ 110km/h | 0 runs
+Over  6.2 | A. Patel     | R. Taylor    | Flighted     @ 106km/h | 1 runs
+Over  6.3 | A. Patel     | M. Santner   | Carrom Ball  @ 101km/h | 1 runs
+Over  6.4 | A. Patel     | R. Taylor    | Googly       @  94km/h | 2 runs
+Over  6.5 | A. Patel     | R. Taylor    | Carrom Ball  @  96km/h | 1 runs
+Over  7.0 | A. Patel     | M. Santner   | Flighted     @  82km/h | 2 runs
+Over  7.1 | R. Jadeja    | R. Taylor    | Leg Break    @  91km/h | 0 runs
+Over  7.2 | R. Jadeja    | R. Taylor    | Leg Break    @ 113km/h | 4 runs
+Over  7.3 | R. Jadeja    | R. Taylor    | Googly       @  83km/h | 1 runs
+Over  7.4 | R. Jadeja    | M. Santner   | Flighted     @ 112km/h | OUT! Bowled/LBW
+Over  7.5 | R. Jadeja    | K. Jamieson  | Off Break    @  94km/h | 6 runs
+Over  8.0 | R. Jadeja    | K. Jamieson  | Carrom Ball  @ 113km/h | OUT! Caught behind by W.Keeper
+Over  8.1 | Y. Chahal    | R. Taylor    | Leg Break    @  86km/h | 4 runs
+Over  8.2 | Y. Chahal    | R. Taylor    | Carrom Ball  @ 118km/h | 6 runs
+Over  8.3 | Y. Chahal    | R. Taylor    | Googly       @ 118km/h | 2 runs
+Over  8.4 | Y. Chahal    | R. Taylor    | Leg Break    @  91km/h | 4 runs
+Over  8.5 | Y. Chahal    | R. Taylor    | Carrom Ball  @  92km/h | OUT! Caught by Fielder 6
+Over  9.0 | Y. Chahal    | M. Henry     | Carrom Ball  @  96km/h | 0 runs
+Over  9.1 | A. Patel     | T. Boult     | Googly       @ 115km/h | 0 runs
+Over  9.2 | A. Patel     | T. Boult     | Googly       @  93km/h | 1 runs
+Over  9.3 | A. Patel     | M. Henry     | Flighted     @ 115km/h | 2 runs
+Over  9.4 | A. Patel     | M. Henry     | Off Break    @ 119km/h | 2 runs  (DROPPED by Fielder 0)
+Over  9.5 | A. Patel     | M. Henry     | Googly       @ 107km/h | 1 runs
+Over 10.0 | A. Patel     | T. Boult     | Googly       @  90km/h | 4 runs
+Over 10.1 | R. Jadeja    | M. Henry     | Off Break    @  84km/h | 1 runs  (DROPPED by Fielder 4)
+Over 10.2 | R. Jadeja    | T. Boult     | Googly       @  89km/h | OUT! Bowled/LBW
+Over 10.3 | R. Jadeja    | I. Sodhi     | Flighted     @  82km/h | 0 runs  (DROPPED by Fielder 0)
+Over 10.3 | R. Jadeja    | I. Sodhi     | Off Break    @  89km/h | No Ball
+Over 10.4 | R. Jadeja    | I. Sodhi     | Googly       @  90km/h | 1 runs
+Over 10.4 | R. Jadeja    | M. Henry     | Leg Break    @  83km/h | No Ball
+Over 10.5 | R. Jadeja    | M. Henry     | Googly       @ 112km/h | 0 runs  (DROPPED by Fielder 10)
+Over 11.0 | R. Jadeja    | M. Henry     | Leg Break    @ 112km/h | OUT! Caught behind by W.Keeper

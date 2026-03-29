@@ -75,6 +75,9 @@ static void render_row(int bowler_id, int innings,
     bar[BAR_W] = '\0';
     memset(col, 0, BAR_W + 1);
 
+    /* Ensure minimum range to avoid division by zero */
+    if (t_range <= 0) t_range = 1;
+
     for (int i = 0; i < gantt_count; i++)
     {
         gantt_event *e = &gantt_log[i];

@@ -1,0 +1,31 @@
+// FIX #1: Resolve pitch_read() circular buffer race condition
+// File: src/pitch.c
+// Problem: Complex index arithmetic may fail under concurrent access
+
+delivery_event pitch_read()
+{
+    delivery_event ball = {0};
+    pthread_mutex_lock(&pitch_mutex);
+    while (!ball_ready && !innings_over)
+        pthread_cond_wait(&ball_ready_cond, &pitch_mutex);
+
+    if (innings_over)
+    {
+        pthread_mutex_unlock(&pitch_mutex);
+        return ball;
+    }
+
+    // SIMPLIFIED FIX: Always read from buffer[pitch_index-1]
+    // After write: pitch_index = (pitch_index + 1) % PITCH_SIZE
+    // So the just-written element is at pitch_index-1
+    int read_index = pitch_index - 1;
+    if (read_index < 0)
+        read_index = PITCH_SIZE - 1;
+    
+    ball          = pitch_buffer[read_index];
+    ball_ready    = false;
+    ball_consumed = true;
+    pthread_cond_broadcast(&ball_consumed_cond);
+    pthread_mutex_unlock(&pitch_mutex);
+    return ball;
+}

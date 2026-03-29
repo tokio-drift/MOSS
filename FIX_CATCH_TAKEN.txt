@@ -1,0 +1,56 @@
+// FIX #4: Resolve catch_taken not being reset issue
+// File: src/players/fielder.c
+// Current reset_fielder_state needs to reset catch_taken flag
+
+// BEFORE (current problematic code):
+void reset_fielder_state()
+{
+    pthread_mutex_lock(&fielder_mutex);
+    active_fielder_id = -1;
+    catch_taken       = false;  // THIS LINE IS MISSING!
+    // Wake all fielders so none stays stuck after innings ends
+    for (int i = 0; i < TEAM_SIZE; i++)
+        pthread_cond_signal(&fielder_cond[i]);
+    pthread_mutex_unlock(&fielder_mutex);
+}
+
+// AFTER (corrected):
+void reset_fielder_state()
+{
+    pthread_mutex_lock(&fielder_mutex);
+    active_fielder_id = -1;
+    catch_taken = false;  // ← ENSURE THIS IS HERE
+    // Wake all fielders so none stays stuck after innings ends
+    for (int i = 0; i < TEAM_SIZE; i++)
+        pthread_cond_signal(&fielder_cond[i]);
+    pthread_mutex_unlock(&fielder_mutex);
+}
+
+// Actually, on review, catch_taken IS set to false in reset_fielder_state
+// The REAL issue is it's not being reset between deliveries within an innings!
+//
+// The fix should be in src/players/batsman.c after the catch attempt:
+
+// BEFORE (in batsman.c around line 113):
+if (!catch_taken && attempt_catch(f, r.aerial))
+{
+    catch_taken = true;
+    r.wicket = true;
+    // ... rest of code
+}
+// END OF CODE - catch_taken never reset!
+
+// AFTER (fixed):
+if (!catch_taken && attempt_catch(f, r.aerial))
+{
+    catch_taken = true;
+    r.wicket = true;
+    caught = 1;
+    caught_by_keeper = f->is_keeper;
+}
+else
+{
+    catch_taken = false;  // ← RESET for next ball
+    r.wicket = false;
+    r.runs = rand() % 3;
+}

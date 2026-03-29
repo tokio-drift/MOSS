@@ -53,19 +53,20 @@ void *batsman_thread(void *arg)
             int bat_runs   = 0;
             if (rand() % 100 < 10) bat_runs = 1;
 
-            match.score  += extra_runs + bat_runs;
+            int total_runs = extra_runs + bat_runs;  // Calculate total once
+            match.score  += total_runs;
             match.extras += extra_runs;
-            update_bowler_runs(bowler, extra_runs + bat_runs);
+            update_bowler_runs(bowler, total_runs);
             if (bat_runs > 0)
                 update_batsman_stats(batsman, bat_runs, false);
             pthread_mutex_unlock(&score_mutex);
 
             log_event(log_fp, bowler, batsman, ball,
-                      (shot_result){.runs=bat_runs, .wicket=false, .aerial=false},
+                      (shot_result){.runs=total_runs, .wicket=false, .aerial=false},
                       -1, 0, false);
             fflush(log_fp);
             gantt_record(&ball, bowler, batsman, consumed_ns,
-                         match.overs, match.balls, bat_runs, false, match.innings);
+                         match.overs, match.balls, total_runs, false, match.innings);
             continue;
         }
 
@@ -91,15 +92,15 @@ void *batsman_thread(void *arg)
             {
                 catch_taken       = true;
                 r.wicket          = true;
-                r.runs = 0;
+                r.runs            = 0;
                 caught            = 1;
                 caught_by_keeper  = f->is_keeper;
             }
             else
             {
                 catch_taken       = false;
-                r.wicket = false;
-                r.runs   = rand() % 3;
+                r.wicket          = false;
+                /* Keep original r.runs from play_shot() - DON'T overwrite */
             }
             pthread_mutex_unlock(&fielder_mutex);
         }
