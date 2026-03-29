@@ -60,7 +60,7 @@ static int schedule_sjf_locked(player team[], int n)
 {
     int min_balls = INT_MAX, best = -1;
     for (int i = 0; i < n; i++)
-        if (can_bowl(&team[i]) && team[i].overs_bowled < min_balls)
+        if (can_bowl(&team[i]) && i != current_bowler_id && team[i].overs_bowled < min_balls)
         {
             min_balls = team[i].overs_bowled;
             best = i;
@@ -76,7 +76,7 @@ static int schedule_priority_locked(player team[], int n)
 
     for (int i = 0; i < n; i++)
     {
-        if (!can_bowl(&team[i])) continue;
+        if (!can_bowl(&team[i]) || i == current_bowler_id) continue;
         int score = team[i].bowling_skill * 2 - team[i].overs_bowled * 3;
         if (phase == 0) score += (team[i].bowler_type == 0) ? 10 : -5;
         else if (phase == 1) score += (team[i].bowler_type == 1) ? 8 : 0;
