@@ -68,11 +68,6 @@ int attempt_run(int sid, int nsid, int runs,
 
         pthread_mutex_unlock(&runout_mutex);
 
-        printf("  [RUN OUT] %s run out! (%d run%s completed)\n",
-               batting_team[victim].name,
-               completed,
-               completed == 1 ? "" : "s");
-
         return victim;
     }
 

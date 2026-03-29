@@ -48,8 +48,8 @@ void *bowler_thread(void *arg)
             legal_balls = 0;
 
             end_over(bowling_team, TEAM_SIZE);
-            printf("  [Over %d complete] Bowler -> %d\n",
-                   match.overs, current_bowler_id);
+            printf("  [Over %d complete] Bowler -> %s\n",
+                   match.overs, bowler->name);
         }
     }
 
