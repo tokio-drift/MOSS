@@ -24,18 +24,6 @@ static const char *ball_type_name(enum ball_type bt)
     }
 }
 
-static const char *extra_name(int extra)
-{
-    switch (extra)
-    {
-        case WIDE:    return "Wide";
-        case NO_BALL: return "No Ball";
-        case BYE:     return "Bye";
-        case LEG_BYE: return "Leg Bye";
-        default:      return "Extra";
-    }
-}
-
 shot_result play_shot(player *batsman, player *bowler, delivery_event ball)
 {
     shot_result r = {0};
@@ -89,6 +77,7 @@ shot_result play_shot(player *batsman, player *bowler, delivery_event ball)
 
     if (wicket_prob <  4) wicket_prob  = 4;
     if (wicket_prob > 45) wicket_prob  = 45;
+
     int rnd = rand() % 100;
     if (rnd < wicket_prob)
     {
@@ -145,6 +134,7 @@ shot_result play_shot(player *batsman, player *bowler, delivery_event ball)
     return r;
 }
 
+ 
 void log_event(FILE *fp,
                player *bowler,
                player *batsman,
@@ -152,7 +142,9 @@ void log_event(FILE *fp,
                shot_result r,
                int fielder_id,
                int caught,
-               bool caught_by_keeper)
+               bool caught_by_keeper,
+               bool runout,
+               bool runout_striker)
 {
     fprintf(fp, "Over %2d.%d | %-12s | %-12s | %-12s @ %3dkm/h | ",
             match.overs, match.balls,
@@ -162,10 +154,35 @@ void log_event(FILE *fp,
 
     if (ball.extra != NO_EXTRA)
     {
+        const char *en;
+        switch (ball.extra)
+        {
+            case WIDE:    en = "Wide";    break;
+            case NO_BALL: en = "No Ball"; break;
+            case BYE:     en = "Bye";     break;
+            case LEG_BYE: en = "Leg Bye"; break;
+            default:      en = "Extra";   break;
+        }
         if (r.runs == 0)
-            fprintf(fp, "%s\n", extra_name(ball.extra));
+            fprintf(fp, "%s\n", en);
         else
-            fprintf(fp, "%s + %d\n", extra_name(ball.extra), r.runs);
+            fprintf(fp, "%s + %d run%s\n", en, r.runs, r.runs == 1 ? "" : "s");
+        return;
+    }
+
+    if (runout)
+    {
+        const char *dismissed = runout_striker ? batsman->name : "(non-striker)";
+        if (r.runs > 0)
+            fprintf(fp, "RUN OUT! %-12s  |  %d run%s scored before dismissal"
+                        "  |  Fielder %d\n",
+                    dismissed,
+                    r.runs, r.runs == 1 ? "" : "s",
+                    fielder_id);
+        else
+            fprintf(fp, "RUN OUT! %-12s  |  0 runs scored"
+                        "  |  Fielder %d\n",
+                    dismissed, fielder_id);
         return;
     }
 
@@ -180,12 +197,12 @@ void log_event(FILE *fp,
         }
         else
             fprintf(fp, "OUT! Bowled/LBW\n");
+        return;
     }
+
+    if (r.aerial && !caught && fielder_id >= 0)
+        fprintf(fp, "%d run%s  (DROPPED by Fielder %d)\n",
+                r.runs, r.runs == 1 ? "" : "s", fielder_id);
     else
-    {
-        if (r.aerial && !caught && fielder_id >= 0)
-            fprintf(fp, "%d runs  (DROPPED by Fielder %d)\n", r.runs, fielder_id);
-        else
-            fprintf(fp, "%d runs\n", r.runs);
-    }
+        fprintf(fp, "%d run%s\n", r.runs, r.runs == 1 ? "" : "s");
 }

@@ -7,6 +7,7 @@ SRC =   src/main.c \
         src/scheduler.c \
         src/scoreboard.c \
         src/gantt.c \
+        src/runout.c \
         src/players/batsman.c \
         src/players/bowler.c \
         src/players/fielder.c \

@@ -16,7 +16,7 @@ extern int scheduling_policy;
 
 extern pthread_mutex_t scheduler_mutex;
 
-void init_scheduler();
+void init_scheduler(void);
 void set_scheduling_policy(int policy);
 
 int select_next_bowler(player team[], int n);
@@ -24,15 +24,19 @@ int schedule_rr(player team[], int n);
 int schedule_priority(player team[], int n, scoreboard *match);
 int schedule_sjf(player team[], int n);
 
-void init_batting_order();
-/* on_wicket: sets new striker from remaining batsmen.
-   Returns the new striker's player-id, or -1 if all out. */
-int on_wicket();
-void swap_strike();
-int get_striker();
-int get_non_striker();
+void init_batting_order(void);
+
+
+int on_wicket(void);
+
+
+int on_wicket_nonstriker(void);
+
+void swap_strike(void);
+int  get_striker(void);
+int  get_non_striker(void);
 
 void end_over(player team[], int n);
 void update_match_intensity(scoreboard *match);
 
-#endif
+#endif 

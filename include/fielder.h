@@ -6,16 +6,16 @@
 #include "types.h"
 #include "constants.h"
 
-extern int active_fielder_id;
+extern int  active_fielder_id;
 extern bool catch_taken;
 extern pthread_mutex_t fielder_mutex;
-extern pthread_cond_t fielder_cond[TEAM_SIZE];
+extern pthread_cond_t  fielder_cond[TEAM_SIZE];
 
-void init_fielders();
+void init_fielders(void);
 void notify_fielder(int fielder_id, bool aerial);
 void *fielder_thread(void *arg);
-int select_fielder(player fielding_team[], int n);
+int  select_fielder(player fielding_team[], int n);
 bool attempt_catch(player *fielder, bool aerial);
-void reset_fielder_state();
+void reset_fielder_state(void);
 
-#endif
+#endif 
