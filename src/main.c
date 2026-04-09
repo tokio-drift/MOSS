@@ -451,7 +451,7 @@ int main(int argc, char *argv[])
 
     if (system("mkdir -p " LOG_DIR) != 0)
         fprintf(stderr, "warning: could not create " LOG_DIR "\n");
-
+        
     init_pitch();
     init_scoreboard();
     init_scheduler();
@@ -525,6 +525,7 @@ int main(int argc, char *argv[])
     printf("\033[0m\n\n");
     printf("\033[2m To view the logs, run: nano ./logs/log.txt\033[0m\n");
     printf("\033[2m To view the gantt charts, run: nano ./logs/gantt.txt\033[0m\n");
-
+    if (inn1_runs == inn2_runs)
+        return 19;
     return 0;
 }
