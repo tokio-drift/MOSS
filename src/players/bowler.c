@@ -51,6 +51,7 @@ void *bowler_thread(void *arg)
             printf("  [Over %d complete] Bowler -> %s\n",
                    match.overs, bowler->name);
         }
+        
     }
 
     pthread_exit(NULL);
