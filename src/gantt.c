@@ -7,7 +7,7 @@
 #include "../include/types.h"
 
 gantt_event gantt_log[MAX_GANTT_EVENTS];
-int gantt_count      = 0;
+int gantt_count = 0;
 long long gantt_start_ns = 0;
 
 void gantt_init()
@@ -81,16 +81,25 @@ static void render_row(int bowler_id, int innings,
         if (right >= BAR_W) right = BAR_W - 1;
         if (right < left)   right = left;
 
-        char fill  = e->wicket ? 'X' : '#';
-        char c_id  = e->wicket ? 4   : (char)(e->batsman_type + 1);
-
-        for (int c = left; c <= right; c++)
+         for (int c = left; c <= right; c++)
         {
-
             if (bar[c] == 'X') continue;
-            bar[c] = fill;
-            col[c] = c_id;
+            
+            if (e->wicket) {
+                
+                if (c == right) {
+                    bar[c] = 'X';
+                    col[c] = 4;
+                } else {
+                    bar[c] = '#';
+                    col[c] = (char)(e->batsman_type + 1);
+                }
+            } else {
+                bar[c] = '#';
+                col[c] = (char)(e->batsman_type + 1);
+            }
         }
+
     }
 }
 

@@ -36,6 +36,7 @@ void *batsman_thread(void *arg)
     {
         delivery_event ball = pitch_read();
         if (innings_over) break;
+        
 
         struct timespec consumed_ts;
         clock_gettime(CLOCK_MONOTONIC, &consumed_ts);
